@@ -107,4 +107,6 @@ if full:
     for r in full:
         print(f"    {r['var']} {r['pair']}: agrupada {pp(r['d'])}, "
               f"intra {pp(r['within'])}, mezcla {pp(r['mix'])}")
-json.dump(rows, open("scan_rows.json", "w"), indent=1)
+OUT = pathlib.Path(__file__).resolve().parent / "scan-hmda-56-pares.json"
+OUT.write_text(json.dumps(rows, indent=1))
+print(f"\n  -> {OUT.name}")
