@@ -1,24 +1,32 @@
-# Post 2 (español) — el dado cargado
+# Post 2 (español) — la misma regla, distinto castigo
 
 Post de seguimiento del paper, en español, para la audiencia local.
-Publicar **4–5 días después** del primero para que no compitan por la misma
-audiencia. Sin documento adjunto; el paper vive en el post anterior, y este
-enlaza a aquel.
+Publicar **4–5 días después** del primero. Sin documento adjunto; el paper
+vive en el post anterior y este enlaza a aquel.
 
-**Imagen:** `figures/post2_dado.png` (1120 × 1120, cuadrada). Se genera con
-`src/figura_post_es.py`. Adjuntar como imagen única.
+**Decisión deliberada:** la imagen y el ejemplo son **neutros** (90 % y
+70 %, sin grupos reales). El mecanismo se enseña aquí; la aplicación a datos
+de crédito se queda en el paper, que es donde caben sus dos advertencias.
+Una imagen de redes sociales separada de sus salvedades es una cita mal
+hecha esperando a ocurrir.
+
+**Imagen:** `figures/post2_curvatura.png` (1120 × 1120, cuadrada). Se genera
+con `src/figura_post_es.py`. Adjuntar como imagen única.
+
+**Antes de publicar:** sustituir `[FECHA]` en el cuerpo por cuándo salió el
+primer post.
 
 **Texto alternativo** (LinkedIn lo pide al subir la imagen — botón "Alt"):
 
-> Tabla titulada "¿Está cargado el dado?". El 6 sale el 18 % de las veces
-> en vez del 16,7 %; el sesgo es idéntico en las cinco filas y lo único que
-> cambia es cuántas veces se tira. Con 60 tiradas el p-valor es 0,78 y el
-> veredicto es "no hay evidencia". Con 600 tiradas, 0,38, tampoco hay
-> evidencia. Con 6.000 tiradas el p-valor baja a 0,0056 y el veredicto pasa
-> a "el dado está cargado". Con 60.000 tiradas es 2 por 10 elevado a −18, y
-> con 600.000 tiradas es 5 por 10 elevado a −169; en ambos casos el dado
-> está cargado. Al pie: mismo dado, mismo sesgo; el p-valor no mide lo
-> cargado que está, mide cuántas veces lo tiraste.
+> Gráfico titulado "La misma regla, distinto castigo". Una curva muestra
+> cuántos puntos porcentuales pierde un grupo cuando se le reduce a la mitad
+> la probabilidad de pasar, según el porcentaje del que parta. La curva vale
+> cero en los extremos y alcanza su máximo, unos 17 puntos, alrededor del
+> 58 %. Dos puntos marcados: quien parte del 70 % pierde 16,2 puntos y quien
+> parte del 90 % pierde 8,2. Al pie: la distancia entre los dos era de 20
+> puntos y después de la regla es de 28; nadie los trató distinto, la brecha
+> se ensanchó sola porque desde arriba se cae menos y no hay sitio por
+> encima del 100 %.
 
 Sin Markdown y sin negritas Unicode en el cuerpo.
 
@@ -28,40 +36,45 @@ Sin Markdown y sin negritas Unicode en el cuerpo.
 
 CIFRAS CORRECTAS, CONCLUSIONES FALSAS · 2
 
-Tengo un dado ligeramente cargado. El 6 sale el 18 % de las veces en vez del
-16,7 % que le tocaría.
+Dos grupos. Uno pasa el 90 % de las veces, el otro el 70 %.
 
-Si lo tiro 60 veces y le corro un test, el resultado es p = 0,78: no hay
-evidencia de que esté cargado. Si lo tiro 600.000 veces, el mismo dado da un
-p-valor con 168 ceros detrás de la coma.
+Cambia la regla, idéntica para los dos: a ambos se les reduce a la mitad la
+probabilidad de pasar. Sin excepciones y sin trato distinto para nadie.
 
-El dado no cambió. El sesgo tampoco. Solo cambió cuántas veces lo tiré.
+El primero cae al 81,8 %: pierde 8,2 puntos.
+El segundo cae al 53,8 %: pierde 16,2.
 
-Esto no es un tecnicismo de laboratorio. Es la razón por la que dos áreas de
-una misma empresa pueden mirar el mismo comportamiento y no ponerse de
-acuerdo en si "hay diferencia".
+La distancia entre los dos era de 20 puntos. Ahora es de 28.
 
-El área con más volumen siempre va a encontrar diferencias significativas,
-porque a partir de cierto tamaño de muestra cualquier diferencia lo es. El
-área con menos volumen nunca las va a encontrar, aunque estén ahí. Y las dos
-van a tener razón según su propio test.
+Nadie los trató distinto. La brecha se ensanchó sola, y la razón es que desde
+arriba se cae menos: no hay sitio por encima del 100 %.
 
-Lo verifiqué con datos públicos en el paper que publiqué la semana pasada:
-17,9 millones de solicitudes de crédito hipotecario. El test de homogeneidad
-da p cercano a 10 elevado a −399. Los mismos datos, contados a la milésima
-parte de escala, dan p = 0,73.
+Esto no es un juego aritmético. Es la razón por la que una brecha medida en
+puntos porcentuales no sirve para vigilar diferencias entre grupos: se
+ensancha en las malas y se estrecha en las buenas sin que nadie cambie de
+criterio, porque responde a de dónde parte cada uno tanto como a cómo se los
+trata.
 
-Lo que sí se puede reportar sin que dependa del volumen es la magnitud. En
-ese caso, cuánto se diferencian entre sí los segmentos: un cociente, no un
-p-valor. Con esa medida los ocho cortes que probé se separan por un factor
-de quince, y el orden no es el que uno esperaría.
+Lo medí sobre datos públicos en el paper que publiqué el [FECHA]: más de
+veinte millones de solicitudes hipotecarias entre 2021 y 2023. Un solo
+endurecimiento ciego al grupo, aplicado a los puntos de partida, reproduce
+entre el 46 % y el 128 % de cada ensanchamiento observado.
 
-La regla práctica que me llevo:
+Y dos cosas que hay que decir juntas, porque de esas cifras se sacan las dos
+conclusiones y las dos están mal.
 
-Si alguien te trae un p-valor sin decirte sobre cuántos registros lo calculó,
-no te trajo un resultado. Te trajo el tamaño de su tabla.
+No prueban que aumentara el trato diferencial: casi todo el ensanchamiento lo
+reproduce un desplazamiento que es ciego al grupo por construcción.
 
-Paper completo, datos y código en el primer comentario del post anterior.
+Y no prueban que el crédito fuera equitativo: el diseño no tiene controles de
+solvencia, no compara iguales con iguales, y no dice nada sobre el nivel de
+ninguna brecha. Solo sobre cómo se mueve cuando el sistema se endurece.
+
+La regla práctica que me llevo: si vas a vigilar una diferencia entre grupos,
+reporta la razón de momios con su intervalo, no la resta de porcentajes. La
+resta se mueve sola.
+
+Paper, datos y código en el post anterior.
 
 ---
 
@@ -70,4 +83,5 @@ Paper completo, datos y código en el primer comentario del post anterior.
 Paper (PDF, 9 páginas), datos y código:
 github.com/cperezrisquet/approval-rate-reversal
 
-El dado de la imagen se reproduce con `src/figura_post_es.py`.
+La curva de la imagen es r(1−r)(1−ψ)/(1−r+ψr), y se reproduce con
+`src/figura_post_es.py`.

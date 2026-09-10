@@ -74,15 +74,31 @@ Codes 7 and 8 (preapproval requests) do not arise under the filters used.
 Eight, declared in `SEGMENTATIONS` in
 [`src/application_data.py`](../src/application_data.py): `loan_purposes`,
 `loan_types`, `lien_statuses`, `construction_methods`, `total_units`, `races`,
-`sexes`, `ethnicities`. `age_groups` was tried and does not group — the API
-accepts it and returns an ungrouped total, so it is not used.
+`sexes`, `ethnicities`.
+
+**The credit-risk axes are not available through this endpoint.** Tested and
+confirmed: `debt_to_income_ratios`, `loan_to_value_ratios`, `income_brackets`
+and `applicant_ages` are all accepted with HTTP 200 and all **ignored** — the
+response comes back split by `actions_taken` only, with no breakdown. Same for
+`age_groups`. Those fields exist only in the loan-level files, several
+gigabytes per filing year.
+
+That is the binding limitation on everything in this repository: there are no
+applicant-level controls for income, collateral or debt burden, and HMDA does
+not publish credit scores at all. No causal reading of any result is
+available.
 
 The demographic fields are as reported by the filing institution, with
 substantial non-response, and the strata are the API's own categories.
 
-**On axis selection.** `loan_purposes` was fixed *before* the data were
-examined, on a stated mechanism, and the prediction it generated was wrong;
-the record is in [`../findings/01-hipotesis-preregistrada.md`](../findings/01-hipotesis-preregistrada.md).
+**On axis selection.** Every hypothesis in this repository was written down
+before the data behind it were examined, and the two that failed are recorded
+as such: [`../findings/01-hipotesis-preregistrada.md`](../findings/01-hipotesis-preregistrada.md)
+(the composition mechanism) and
+[`../findings/03-preregistro-endurecimiento.md`](../findings/03-preregistro-endurecimiento.md)
+(the curvature mechanism, whose pooled prediction came out at r = −0.025).
+Both were committed before the results they concern; the git history is the
+evidence.
 The remaining seven axes are reported as a complete distribution, never as
 the maximum. Searching combinations for the one that behaves interestingly and
 reporting that one is the anti-pattern this series argues against.

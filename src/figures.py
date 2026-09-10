@@ -57,255 +57,225 @@ def save(fig, name):
     plt.close(fig)
     print(f"  figures/{name}.svg")
 
-import statistics
+from analysis import (GAP_PAIRS, Y0, Y1, curvature_cost, gap_counterfactual,
+                      homogeneity_log10p, mantel_haenszel_or, odds_shift,
+                      stratum_or_ci)
+from application_data import AXIS_LABELS, pair, rate
 
-from analysis import (decompose, homogeneity, homogeneity_log10p, or_spread,
-                      pooled_rate, rate_change_spread, scaled,
-                      stratum_odds_ratios)
-from application_data import AXIS_LABELS, PAIRS, SEGMENTATIONS, pair, rate
+SHORT = {"Black or African American": "Black or African Am.",
+         "American Indian or Alaska Native": "Am. Indian / Alaska Nat.",
+         "Native Hawaiian or Other Pacific Islander": "Native Hawaiian / Pac. Isl.",
+         "Not Hispanic or Latino": "Not Hispanic or Latino"}
+def sh(s, n=26):
+    return SHORT.get(s, s)[:n]
 
-P05 = np.log10(0.05)
+RACE0, RACE1 = pair("races", Y0, Y1)
+PSI = mantel_haenszel_or(RACE0, RACE1)
+GAPS = {(v, a, b): gap_counterfactual(*pair(v, Y0, Y1), a, b)
+        for v, a, b in GAP_PAIRS}
 
 print("Generando figuras:")
 
-# =========================================================== FIGURA 2
-# (se define primero porque la portada la reutiliza sin título)
-# Change-over-a-continuum, dos series, una sola escala -> línea.
-# El eje y es log10(p) y no p: a escala real el p-valor hace underflow, y
-# graficar un cero que en realidad es 1e-399 sería mentir con el eje.
-# La portada del PDF usa la misma figura sin título propio.
-SCALES = [30000, 10000, 3000, 1000, 300, 100, 30, 10, 3, 1]
-DEMO = [("loan_purposes", "Loan purpose", BLUE),
-        ("sexes", "Sex", ORANGE)]
-
-
-def _curve(var):
-    t0, t1 = pair(var, 2024, 2025)
-    out = []
-    for div in SCALES:
-        a0, a1 = scaled(t0, div), scaled(t1, div)
-        n = sum(v[0] for v in a0.values()) + sum(v[0] for v in a1.values())
-        lg, _, _ = homogeneity_log10p(a0, a1)
-        out.append((n, lg))
-    return out
-
-
-CURVES = {var: _curve(var) for var, _, _ in DEMO}
-
-
-def fig1(title=True, height=3.15):
+# =========================================================== FIGURA 3
+# (se define primero: la portada la reutiliza sin título)
+# LA CURVATURA. Una función sobre un continuo -> línea. Es el mecanismo
+# entero del paper en una curva, y por eso va en portada.
+def fig_curv(title=True, height=3.2):
     fig, ax = plt.subplots(figsize=(6.4, height))
-    floor = -12.0                      # el eje se corta aquí, no los datos
+    xs = np.linspace(0.02, 0.985, 400)
+    ys = [curvature_cost(x, PSI) * 100 for x in xs]
+    ax.plot(xs * 100, ys, color=INK_2, lw=2, zorder=3)
 
-    ax.axhspan(P05, 1.0, color=AQUA, alpha=0.06, zorder=0)
-    ax.axhline(P05, color=BASELINE, lw=1, ls=(0, (4, 3)), zorder=1)
-    ax.annotate("p = 0.05", (2.4e7, P05), xytext=(0, -11),
-                textcoords="offset points", color=MUTED, fontsize=8,
-                ha="right")
-    ax.annotate("nothing detected above this line", (5.5e2, P05 + 0.35),
-                color=MUTED, fontsize=8, style="italic", va="bottom")
+    ors = stratum_or_ci(RACE0, RACE1)
+    pts = []
+    for s in ors:
+        b = rate(*reversed(RACE0[s]))
+        pts.append((s, b * 100, curvature_cost(b, PSI) * 100, RACE0[s][0]))
+    pts.sort(key=lambda p: -p[3])
 
-    for var, label, colour in DEMO:
-        pts = CURVES[var]
-        xs = [n for n, _ in pts]
-        ys = [max(lg, floor - 3) for _, lg in pts]      # recorte de dibujo
-        ax.plot(xs, ys, color=colour, lw=2, zorder=3)
-        vis = [(n, lg) for n, lg in pts if lg >= floor]
-        ax.scatter([n for n, _ in vis], [lg for _, lg in vis], s=32,
-                   facecolor=colour, edgecolor=SURFACE, lw=1.5, zorder=4)
-        # Etiqueta directa donde la curva tiene sitio: para la azul, en
-        # plena caída (junto al borde inferior chocaba con la flecha).
-        if colour is BLUE:
-            nx, ny = min(vis, key=lambda p: abs(p[1] + 3.0))
-            off, ha = (-10, 2), "right"
-        else:
-            nx, ny = vis[-1]
-            off, ha = (6, 9), "left"
-        ax.annotate(label, (nx, ny), xytext=off, textcoords="offset points",
-                    color=colour, fontsize=9, fontweight="bold", ha=ha)
+    # White y Black llevan la anotación; el resto solo el punto.
+    for s, x, y, n in pts:
+        big = s in ("White", "Black or African American")
+        ax.scatter([x], [y], s=95 if big else 46,
+                   facecolor=BLUE if big else SURFACE,
+                   edgecolor=BLUE, lw=1.8, zorder=5)
+    w = next(p for p in pts if p[0] == "White")
+    b = next(p for p in pts if p[0] == "Black or African American")
+    # Las dos etiquetas van POR DEBAJO de la curva: encima chocan con ella.
+    ax.annotate(f"Black or African American\n{b[1]:.1f}% → costs {b[2]:.2f} pp",
+                (b[1], b[2]), xytext=(-14, -14), textcoords="offset points",
+                color=BLUE, fontsize=8.5, fontweight="bold", ha="right",
+                va="top", linespacing=1.4)
+    ax.annotate(f"White\n{w[1]:.1f}% → costs {w[2]:.2f} pp", (w[1], w[2]),
+                xytext=(-6, -14), textcoords="offset points", color=BLUE,
+                fontsize=8.5, fontweight="bold", ha="right", va="top",
+                linespacing=1.4)
 
-    # Dónde acaba de verdad la curva azul, que es el remate del argumento.
-    full = CURVES["loan_purposes"][-1]
-    ax.annotate(f"at full scale: p ≈ 10$^{{{full[1]:.0f}}}$",
-                (full[0], floor), xytext=(-6, 26), textcoords="offset points",
-                color=BLUE, fontsize=8.5, ha="right", fontweight="bold",
-                arrowprops=dict(arrowstyle="-|>", color=BLUE, lw=1.1,
-                                shrinkA=2, shrinkB=1))
+    # Horquilla de la diferencia mecánica, apartada a la derecha para no
+    # pisar ni la curva ni los puntos.
+    XB = 96.5
+    for _, x, y, _ in (b, w):
+        ax.plot([x, XB], [y, y], color=GRID, lw=0.9, zorder=1)
+    ax.annotate("", (XB, b[2]), xytext=(XB, w[2]), textcoords="data",
+                arrowprops=dict(arrowstyle="<->", color=ORANGE, lw=1.5))
+    ax.annotate(f"{b[2]-w[2]:+.2f} pp\nfrom the curve\nalone",
+                (XB, (w[2] + b[2]) / 2), xytext=(7, 0),
+                textcoords="offset points", color=ORANGE, fontsize=8.5,
+                fontweight="bold", va="center", linespacing=1.4)
 
-    ax.set_xscale("log")
-    ax.set_xlabel("Applications counted (both years)")
-    ax.set_ylabel("log$_{10}$ of the Breslow–Day p-value")
-    ax.set_ylim(floor, 1.0)
+    ax.set_xlim(0, 122)
+    ax.set_ylim(0, 16.5)
+    ax.set_xticks([0, 20, 40, 60, 80, 100])
+    ax.set_xlabel(f"Approval rate in {Y0} (%)")
+    ax.set_ylabel("Percentage points lost")
     clean(ax)
-    ax.legend(handles=[
-        plt.Line2D([], [], color=c, lw=2, marker="o", ms=5.5,
-                   markeredgecolor=SURFACE, markeredgewidth=1.5, label=l)
-        for _, l, c in DEMO], loc="lower left", frameon=False, fontsize=8.5)
     if title:
-        ax.set_title("The same data, counted at different scales",
+        ax.set_title(f"What one group-blind odds shift costs, by starting point",
                      loc="left", fontsize=10.5, fontweight="bold", pad=9)
     fig.tight_layout()
     return fig
 
 
-save(fig1(), "fig2_scale")
-save(fig1(title=False, height=3.75), "fig_cover")
+save(fig_curv(), "fig3_curvature")
+save(fig_curv(title=False, height=3.55), "fig_cover")
 
 # =========================================================== FIGURA 1
-# 56 pares: ¿explica la composición el movimiento agregado? Dos magnitudes
-# comparables en las mismas unidades -> dispersión con la diagonal y=x como
-# referencia. Si la mezcla lo explicara todo, los puntos irían sobre ella.
-ROWS = []
-for var in SEGMENTATIONS:
-    for y0, y1 in PAIRS:
-        t0, t1 = pair(var, y0, y1)
-        if len(t0) < 2:
-            continue
-        r0, r1 = pooled_rate(t0.values()), pooled_rate(t1.values())
-        within, mix = decompose(t0, t1)
-        ROWS.append(dict(var=var, pooled=(r1 - r0) * 100, mix=mix * 100,
-                         within=within * 100,
-                         spread=rate_change_spread(t0, t1)[2] * 100,
-                         ors=or_spread(t0, t1),
-                         p=homogeneity(t0, t1)[1]))
-
-
-def fig2():
-    fig, ax = plt.subplots(figsize=(4.75, 4.15))
-    lim = 8.0
-    ax.plot([-lim, lim], [-lim, lim], color=BASELINE, lw=1, ls=(0, (4, 3)),
-            zorder=1)
-    ax.annotate("if composition\nexplained it all", (-4.6, -4.6),
-                xytext=(10, -3), textcoords="offset points", color=MUTED,
-                fontsize=8, style="italic", va="top")
-    ax.axhspan(-0.5, 0.5, color=BLUE, alpha=0.06, zorder=0)
-    ax.axhline(0, color=BASELINE, lw=1, zorder=1)
-
-    pre = [r for r in ROWS if r["var"] == "loan_purposes"]
-    rest = [r for r in ROWS if r["var"] != "loan_purposes"]
-    ax.scatter([r["pooled"] for r in rest], [r["mix"] for r in rest],
-               s=34, facecolor=MUTED, alpha=0.55, edgecolor=SURFACE, lw=1,
-               zorder=3, label=f"other seven axes  (n={len(rest)})")
-    ax.scatter([r["pooled"] for r in pre], [r["mix"] for r in pre],
-               s=52, facecolor=BLUE, edgecolor=SURFACE, lw=1.5, zorder=4,
-               label=f"loan purpose — pre-registered  (n={len(pre)})")
-
-    inside = sum(1 for r in ROWS if abs(r["mix"]) < 0.5)
-    ax.annotate(f"{inside} of {len(ROWS)} pairs\ninside ±0.5 pp",
-                (-lim, 0.5), xytext=(6, 10), textcoords="offset points",
-                color=INK_2, fontsize=8.5, fontweight="bold")
-
-    ax.set_xlim(-lim, lim); ax.set_ylim(-lim, lim)
-    ax.set_xlabel("Change in the pooled approval rate (pp)")
-    ax.set_ylabel("Composition component (pp)")
-    ax.set_aspect("equal")
-    clean(ax)
-    ax.legend(loc="upper left", bbox_to_anchor=(-0.02, 0.85),
-              frameon=False, fontsize=8)
-    ax.set_title("Composition does not move the pooled rate",
-                 loc="left", fontsize=10.5, fontweight="bold", pad=9)
-    fig.tight_layout()
-    return fig
-
-
-save(fig2(), "fig1_composition")
-
-# =========================================================== FIGURA 3
-# Una sola medida sobre ocho categorías, con intervalo -> dot plot con
-# rango, ordenado. Un solo tono: el trabajo es magnitud, no identidad.
-def fig3():
-    fig, ax = plt.subplots(figsize=(6.4, 3.25))
-    axes = []
-    for var in SEGMENTATIONS:
-        g = [r for r in ROWS if r["var"] == var]
-        ors = [r["ors"] for r in g if r["ors"]]
-        axes.append((AXIS_LABELS[var], min(ors), max(ors),
-                     sum(1 for r in g if r["p"] >= 0.05), len(g)))
-    axes.sort(key=lambda a: a[2])
-
-    ys = range(len(axes))
-    ax.axvline(1.0, color=BASELINE, lw=1, zorder=1)
-    ax.annotate("1× — every stratum moves alike", (1.0, -0.62),
-                xytext=(4, 0), textcoords="offset points", color=MUTED,
-                fontsize=8, style="italic", va="center")
-    for y, (name, lo, hi, ns, k) in zip(ys, axes):
-        ax.plot([lo, hi], [y, y], color=BLUE, lw=2.6, alpha=0.30,
-                solid_capstyle="round", zorder=2)
-        ax.scatter([lo], [y], s=42, facecolor=SURFACE, edgecolor=BLUE,
-                   lw=1.8, zorder=4)
-        ax.scatter([hi], [y], s=52, facecolor=BLUE, edgecolor=SURFACE,
-                   lw=1.5, zorder=4)
-        ax.annotate(f"{hi:.2f}×", (hi, y), xytext=(8, 0),
-                    textcoords="offset points", color=INK, fontsize=8.5,
-                    va="center", fontweight="bold")
-        if ns:
-            # A la derecha de la cifra: a la izquierda chocaba con el
-            # nombre del eje.
-            ax.annotate(f"— Breslow–Day fails to reject in {ns} of {k}",
-                        (hi, y), xytext=(46, 0), textcoords="offset points",
-                        color=ORANGE, fontsize=7.8, va="center")
-    ax.set_yticks(list(ys)); ax.set_yticklabels([a[0] for a in axes])
-    ax.set_xlim(0.95, 2.62)
-    ax.set_ylim(-1.1, len(axes) - 0.4)
-    ax.set_xlabel("Spread of stratum odds ratios, max ÷ min  (7 year-pairs)")
+# Dos magnitudes en las mismas unidades sobre cuatro categorías ->
+# dumbbell horizontal. Observado contra contrafactual.
+def fig1():
+    fig, ax = plt.subplots(figsize=(6.4, 3.0))
+    labels, ys = [], []
+    items = list(GAPS.items())
+    for i, ((var, a, b), g) in enumerate(items):
+        y = len(items) - 1 - i
+        ys.append(y)
+        labels.append(f"{sh(a, 24)}  vs  {sh(b, 24)}")
+        o, p_ = g["observed"] * 100, g["predicted"] * 100
+        ax.plot([o, p_], [y, y], color=BASELINE, lw=1.6, zorder=2,
+                solid_capstyle="round")
+        ax.scatter([p_], [y], s=58, facecolor=SURFACE, edgecolor=ORANGE,
+                   lw=1.9, zorder=4)
+        ax.scatter([o], [y], s=58, facecolor=BLUE, edgecolor=SURFACE,
+                   lw=1.5, zorder=5)
+        # Cuando los dos valores casi coinciden, separarlos en horizontal:
+        # apilados en vertical chocan con la fila de al lado.
+        near = abs(o - p_) < 0.6
+        ax.annotate(f"{o:+.2f}", (o, y),
+                    xytext=(14 if near else 0, 10 if near else 11),
+                    textcoords="offset points", color=BLUE, fontsize=8,
+                    fontweight="bold", ha="left" if near else "center")
+        ax.annotate(f"{p_:+.2f}", (p_, y),
+                    xytext=(-14 if near else 0, 10 if near else -17),
+                    textcoords="offset points", color=ORANGE, fontsize=8,
+                    fontweight="bold", ha="right" if near else "center")
+    ax.axvline(0, color=BASELINE, lw=1, zorder=1)
+    ax.set_yticks(ys); ax.set_yticklabels(labels, fontsize=8)
+    ax.set_ylim(-0.6, len(items) - 0.4)
+    ax.set_xlim(-0.3, 5.2)
+    ax.set_xlabel(f"Change in the percentage-point gap, {Y0}→{Y1}")
     clean(ax, keep_left=False)
     ax.grid(axis="y", visible=False)
-    ax.set_title("How much heterogeneity each axis actually carries",
+    ax.legend(handles=[
+        plt.Line2D([], [], marker="o", ls="", markerfacecolor=BLUE,
+                   markeredgecolor=SURFACE, ms=7, label="observed"),
+        plt.Line2D([], [], marker="o", ls="", markerfacecolor=SURFACE,
+                   markeredgecolor=ORANGE, markeredgewidth=1.9, ms=7,
+                   label="what a group-blind odds shift produces")],
+        loc="lower right", bbox_to_anchor=(1.01, 0.02), frameon=False,
+        fontsize=8)
+    ax.set_title("Every gap widened. Most of it is arithmetic.",
                  loc="left", fontsize=10.5, fontweight="bold", pad=9)
     fig.tight_layout()
     return fig
 
 
-save(fig3(), "fig3_axes")
+save(fig1(), "fig1_gaps")
 
-# =========================================================== FIGURA 4
-# Dos cantidades en unidades distintas -> dos paneles, nunca dos ejes y.
-# Es la figura del matiz. Solo `races`: meter etnia en el mismo eje de
-# categorías daba un "rango" que cruzaba dos segmentaciones distintas y no
-# significaba nada. Los números de etnia van en el pie de figura.
-SHORT = {"Native Hawaiian or Other Pacific Islander": "Native Hawaiian / Pac. Isl.",
-         "American Indian or Alaska Native": "Am. Indian / Alaska Native"}
-
-
-def fig4():
-    t0, t1 = pair("races", 2024, 2025)
-    cats = sorted(t1, key=lambda k: -rate(*reversed(t1[k])))
-    levels = [rate(*reversed(t1[s])) * 100 for s in cats]
-    moves = [(rate(*reversed(t1[s])) - rate(*reversed(t0[s]))) * 100
-             for s in cats]
-    ys = list(range(len(cats)))[::-1]
-
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(6.4, 2.55),
-                                   gridspec_kw={"wspace": 0.08})
-    for ax, vals, colour, lbl, lo in (
-            (axL, levels, BLUE, "Approval rate, 2025 (%)", 60),
-            (axR, moves, ORANGE, "Change 2024→2025 (pp)", 0)):
-        for y, v in zip(ys, vals):
-            ax.plot([lo, v], [y, y], color=GRID, lw=0.8, zorder=1)
-            ax.scatter([v], [y], s=46, facecolor=colour, edgecolor=SURFACE,
-                       lw=1.4, zorder=3)
-            ax.annotate(f"{v:.1f}", (v, y), xytext=(7, 0),
-                        textcoords="offset points", color=INK_2, fontsize=8,
-                        va="center")
-        ax.annotate(f"spread {max(vals) - min(vals):.1f} pp", (0.5, 1.04),
-                    xycoords="axes fraction", ha="center", color=colour,
-                    fontsize=9, fontweight="bold")
-        ax.set_xlabel(lbl, fontsize=8.5)
-        clean(ax, keep_left=False)
-        ax.grid(axis="y", visible=False)
-        ax.set_yticks(ys)
-        ax.set_ylim(-0.7, len(cats) - 0.3)
-
-    axL.set_xlim(60, 90)
-    axR.set_xlim(0, 4.4)
-    axL.set_yticklabels([SHORT.get(s, s) for s in cats], fontsize=8)
-    axR.set_yticklabels([])
-    fig.suptitle("Levels differ. The year-over-year movement does not.",
-                 x=0.012, ha="left", fontsize=10.5, fontweight="bold", y=0.99)
-    fig.subplots_adjust(top=0.78, bottom=0.19, left=0.24, right=0.97)
+# =========================================================== FIGURA 2
+# Estimaciones con intervalo sobre categorías -> forest plot. Ordenado por
+# la estimación, nunca por conveniencia: es el punto de la sección.
+def fig2():
+    fig, ax = plt.subplots(figsize=(6.4, 2.5))
+    ors = stratum_or_ci(RACE0, RACE1)
+    items = sorted(ors.items(), key=lambda kv: kv[1][0])
+    ys = list(range(len(items)))[::-1]
+    ax.axvline(PSI, color=ORANGE, lw=1.4, ls=(0, (4, 3)), zorder=1)
+    ax.annotate(f"common shift {PSI:.3f}", (PSI, len(items) - 0.45),
+                xytext=(6, 0), textcoords="offset points", color=ORANGE,
+                fontsize=8, style="italic")
+    for y, (s, (o, lo, hi, n)) in zip(ys, items):
+        ax.plot([lo, hi], [y, y], color=BLUE, lw=2.2, zorder=3,
+                solid_capstyle="round")
+        ax.scatter([o], [y], s=52, facecolor=BLUE, edgecolor=SURFACE,
+                   lw=1.5, zorder=4)
+        ax.annotate(f"{o:.3f}", (hi, y), xytext=(8, 0),
+                    textcoords="offset points", color=INK, fontsize=8,
+                    va="center", fontweight="bold")
+        ax.annotate(f"n = {n/1e6:.2f} M" if n >= 1e6 else f"n = {n/1e3:.0f} k",
+                    (hi, y), xytext=(52, 0), textcoords="offset points",
+                    color=MUTED, fontsize=7.5, va="center")
+    ax.set_yticks(ys)
+    ax.set_yticklabels([sh(s, 27) for s, _ in items], fontsize=8)
+    ax.set_ylim(-0.6, len(items) - 0.4)
+    ax.set_xlim(0.44, 0.62)
+    ax.set_xlabel(f"Odds ratio, {Y0}→{Y1}   (lower = tightened more)")
+    clean(ax, keep_left=False)
+    ax.grid(axis="y", visible=False)
+    ax.set_title("The tightening in odds is not monotone in anything",
+                 loc="left", fontsize=10.5, fontweight="bold", pad=9)
+    fig.tight_layout()
     return fig
 
 
-save(fig4(), "fig4_levels")
+save(fig2(), "fig2_forest")
+
+# =========================================================== FIGURA 4
+# Una reordenación entre dos criterios -> gráfico de pendientes. Es la
+# forma que hace visible una inversión de orden.
+def fig4():
+    axes = []
+    for var in ("sexes", "races", "ethnicities"):
+        u0, u1 = pair(var, Y0, Y1)
+        keep = [s for s in u0 if min(u0[s][0], u1[s][0]) >= 5000]
+        k0 = {s: u0[s] for s in keep}; k1 = {s: u1[s] for s in keep}
+        lg, _, _ = homogeneity_log10p(k0, k1)
+        vals = [v[0] for v in stratum_or_ci(k0, k1).values()]
+        axes.append((AXIS_LABELS[var], abs(lg), max(vals) / min(vals)))
+
+    by_p = sorted(axes, key=lambda a: -a[1])
+    by_m = sorted(axes, key=lambda a: -a[2])
+    fig, ax = plt.subplots(figsize=(6.4, 2.6))
+    for name, lg, sp in axes:
+        y0 = len(axes) - by_p.index(next(a for a in by_p if a[0] == name))
+        y1 = len(axes) - by_m.index(next(a for a in by_m if a[0] == name))
+        colour = ORANGE if y0 != y1 else MUTED
+        ax.plot([0, 1], [y0, y1], color=colour, lw=2.2, zorder=3,
+                solid_capstyle="round")
+        ax.scatter([0, 1], [y0, y1], s=58, facecolor=colour,
+                   edgecolor=SURFACE, lw=1.5, zorder=4)
+        ax.annotate(f"{name}   log$_{{10}}$p {-lg:.0f}", (0, y0),
+                    xytext=(-10, 0), textcoords="offset points", ha="right",
+                    va="center", color=INK, fontsize=8.5,
+                    fontweight="bold" if y0 != y1 else "normal")
+        ax.annotate(f"{sp:.3f}×   {name}", (1, y1), xytext=(10, 0),
+                    textcoords="offset points", va="center", color=INK,
+                    fontsize=8.5, fontweight="bold" if y0 != y1 else "normal")
+    ax.set_xlim(-0.62, 1.62)
+    ax.set_ylim(0.4, len(axes) + 0.6)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels(["ranked by the test\n(Breslow–Day p)",
+                        "ranked by magnitude\n(odds-ratio spread)"],
+                       fontsize=9)
+    ax.set_yticks([])
+    for s in ("top", "right", "left", "bottom"):
+        ax.spines[s].set_visible(False)
+    ax.grid(visible=False)
+    ax.set_title("The test and the magnitude disagree on which axis matters",
+                 loc="left", fontsize=10.5, fontweight="bold", pad=9)
+    fig.tight_layout()
+    return fig
+
+
+save(fig4(), "fig4_inversion")
 
 print("\nListo.")

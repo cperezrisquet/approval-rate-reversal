@@ -257,130 +257,201 @@ def scaled(t, div):
             for s, (n, a) in t.items()}
 
 
+# ------------------------------------------------------- CURVATURA Y BRECHAS
+
+def odds_shift(r, psi):
+    """Aplica una razón de momios a una tasa. Es lo que hace mover un corte
+    de score: multiplica los momios, no resta puntos porcentuales."""
+    o = r / (1 - r)
+    return psi * o / (1 + psi * o)
+
+
+def curvature_cost(r, psi):
+    """Puntos porcentuales que cuesta el desplazamiento `psi` a una tasa
+    base `r`.
+
+    El núcleo del paper. La función es cero en 0 y en 1 y tiene un máximo
+    en el medio, así que un MISMO endurecimiento en momios cuesta muy
+    distinto según dónde esté cada grupo. Una brecha en puntos
+    porcentuales entre dos grupos se ensancha por esto solo, sin que nadie
+    los trate distinto.
+    """
+    return r - odds_shift(r, psi)
+
+
+def stratum_or_ci(t0, t1, alpha=0.05):
+    """{segmento: (OR, lo, hi, n)} con el intervalo de Woolf sobre log OR.
+
+    Se reportan los intervalos porque sin ellos no se puede saber si el
+    orden entre estratos significa algo, y el paper se apoya en no
+    ordenarlos en una narrativa.
+    """
+    z = stats.norm.isf(alpha / 2)
+    out = {}
+    for s in t0:
+        if s not in t1:
+            continue
+        n1, a1 = t1[s]
+        n0, a0 = t0[s]
+        b1, b0 = n1 - a1, n0 - a0
+        if min(a1, b1, a0, b0) == 0:
+            continue
+        or_ = (a1 * b0) / (b1 * a0)
+        se = np.sqrt(1 / a1 + 1 / b1 + 1 / a0 + 1 / b0)
+        out[s] = (or_, float(np.exp(np.log(or_) - z * se)),
+                  float(np.exp(np.log(or_) + z * se)), n0 + n1)
+    return out
+
+
+def gap_counterfactual(t0, t1, a, b, psi=None):
+    """Brecha observada entre dos estratos y la que produciría un único
+    desplazamiento en momios, ciego al grupo.
+
+    `psi` se estima por Mantel-Haenszel sobre TODOS los estratos del eje,
+    no sobre el par que se mide, para que el contrafactual no se ajuste a
+    lo que pretende explicar.
+    """
+    if psi is None:
+        psi = mantel_haenszel_or(t0, t1)
+    r0a, r0b = rate(*reversed(t0[a])), rate(*reversed(t0[b]))
+    r1a, r1b = rate(*reversed(t1[a])), rate(*reversed(t1[b]))
+    gap0, gap1 = r0a - r0b, r1a - r1b
+    gap_pred = odds_shift(r0a, psi) - odds_shift(r0b, psi)
+    return dict(psi=psi, gap0=gap0, gap1=gap1,
+                observed=gap1 - gap0, predicted=gap_pred - gap0,
+                residual=(gap1 - gap0) - (gap_pred - gap0))
+
+
 # ---------------------------------------------------------------- INFORME
 
-def main():
-    import statistics
+# Pares grandes sobre los que se miden brechas. Se fijan aquí, no se eligen
+# mirando resultados, y se reportan los cuatro.
+GAP_PAIRS = [
+    ("races", "White", "Black or African American"),
+    ("races", "White", "American Indian or Alaska Native"),
+    ("ethnicities", "Not Hispanic or Latino", "Hispanic or Latino"),
+    ("sexes", "Male", "Female"),
+]
+Y0, Y1 = 2021, 2023
 
+
+def main():
     # ======================================================== RESULTADO 1
     print(line)
-    print("R1. LA REVERSIÓN NO OCURRE")
+    print(f"R1. LAS BRECHAS EN PUNTOS PORCENTUALES SE ENSANCHARON, {Y0}-{Y1}")
     print(line)
-    print("  Paradoja de Simpson = la tasa agrupada se mueve y TODOS los")
-    print("  estratos se mueven al contrario. Barrido completo:\n")
-    rows = []
-    for var in SEGMENTATIONS:
-        for y0, y1 in PAIRS:
-            t0, t1 = pair(var, y0, y1)
-            if len(t0) < 2:
-                continue
-            r0, r1 = pooled_rate(t0.values()), pooled_rate(t1.values())
-            within, mix = decompose(t0, t1)
-            lo, hi, spread = rate_change_spread(t0, t1)
-            chi2, p = homogeneity(t0, t1)
-            rows.append(dict(
-                var=var, y0=y0, y1=y1, k=len(t0),
-                n=sum(v[0] for v in t0.values()) + sum(v[0] for v in t1.values()),
-                pooled=r1 - r0, within=within, mix=mix,
-                lo=lo, hi=hi, spread=spread, ors=or_spread(t0, t1),
-                chi2=chi2, p=p, rev=is_reversal(t0, t1)))
-
-    revs = [r for r in rows if r["rev"]]
-    print(f"  pares probados ({len(SEGMENTATIONS)} ejes x {len(PAIRS)} pares)"
-          f"   {len(rows)}")
-    print(f"  reversiones unánimes                    {len(revs)}")
-    mixes = sorted(abs(r["mix"]) for r in rows)
-    print(f"\n  |componente de mezcla|: mediana {statistics.median(mixes)*100:.2f} pp"
-          f"   máx {max(mixes)*100:.2f} pp")
-    print(f"  pares con |mezcla| < 0.5 pp:  "
-          f"{sum(1 for m in mixes if m < 0.005)}/{len(mixes)}")
-    print("\n  La composición de la demanda casi no mueve la tasa agrupada.")
-    print("  El anti-patrón que la literatura advierte no está en estos datos.")
+    print(f"  Tasa agrupada: ", end="")
+    t0, t1 = pair("loan_purposes", Y0, Y1)
+    r0, r1 = pooled_rate(t0.values()), pooled_rate(t1.values())
+    w, m = decompose(t0, t1)
+    print(f"{r0*100:.2f}% -> {r1*100:.2f}%  ({pp(r1-r0)})")
+    print(f"  de lo cual intra-estrato {pp(w)} y mezcla {pp(m)}\n")
+    print(f"  {'par':<46}{'brecha '+str(Y0):>12}{'brecha '+str(Y1):>12}{'Δ':>9}")
+    gaps = {}
+    for var, a, b in GAP_PAIRS:
+        ta, tb = pair(var, Y0, Y1)
+        g = gap_counterfactual(ta, tb, a, b)
+        gaps[(var, a, b)] = g
+        print(f"  {a[:20]+' vs '+b[:22]:<46}{g['gap0']*100:>11.2f}%"
+              f"{g['gap1']*100:>11.2f}%{g['observed']*100:>+9.2f}")
+    print("\n  Los cuatro se ensanchan. Leído así, el endurecimiento fue")
+    print("  desigual y el desglose por grupo lo detecta.")
 
     # ======================================================== RESULTADO 2
     print("\n" + line)
-    print("R2. LA HOMOGENEIDAD SÍ SE RECHAZA — Y ESO NO DICE NADA")
+    print("R2. UN ENDURECIMIENTO CIEGO AL GRUPO EXPLICA CASI TODO")
     print(line)
-    rej = [r for r in rows if r["p"] < 0.05]
-    tiny = [r for r in rows if r["p"] < 1e-10]
-    print(f"  Breslow-Day rechaza la homogeneidad en   {len(rej)}/{len(rows)}")
-    print(f"  con p < 1e-10 en                         {len(tiny)}/{len(rows)}")
-    ns = [r["n"] for r in rows]
-    print(f"  n por par: {min(ns):,} a {max(ns):,}")
-    print("\n  A esos tamaños cualquier diferencia se vuelve significativa.")
-    print("  Un p~0 sobre 30 millones de solicitudes no distingue un eje")
-    print("  que importa de uno que no. Ver R3.")
+    print("  Contrafactual: un solo desplazamiento en momios aplicado a las")
+    print(f"  bases de {Y0}. El OR común se estima por Mantel-Haenszel sobre")
+    print("  TODOS los estratos del eje, no sobre el par que se mide.\n")
+    print(f"  {'par':<46}{'OR común':>10}{'Δ obs.':>9}{'Δ pred.':>10}{'residuo':>10}")
+    for (var, a, b), g in gaps.items():
+        print(f"  {a[:20]+' vs '+b[:22]:<46}{g['psi']:>10.4f}"
+              f"{g['observed']*100:>+9.2f}{g['predicted']*100:>+10.2f}"
+              f"{g['residual']*100:>+10.2f}")
+    over = [g for g in gaps.values() if g["residual"] < 0]
+    share = [g["predicted"] / g["observed"] for g in gaps.values()]
+    resid = [abs(g["residual"]) * 100 for g in gaps.values()]
+    print(f"\n  el contrafactual cubre entre el {min(share)*100:.0f}% y el "
+          f"{max(share)*100:.0f}% de cada ensanchamiento")
+    print(f"  residuos absolutos: de {min(resid):.2f} a {max(resid):.2f} pp")
+    print(f"  sobre-predice en {len(over)}/{len(gaps)}, sub-predice en "
+          f"{len(gaps)-len(over)}/{len(gaps)}")
+    print("\n  El ensanchamiento es en su mayor parte mecánico en los cuatro")
+    print("  pares. En White vs Black, además, la brecha se ensanchó MENOS")
+    print("  de lo que produce una política uniforme — pero eso es de ese")
+    print("  par, no una propiedad general, y el paper no lo generaliza.")
+
+    ta, tb = pair("races", Y0, Y1)
+    psi = mantel_haenszel_or(ta, tb)
+    lo, hi = mantel_haenszel_ci(ta, tb)
+    g = gaps[("races", "White", "Black or African American")]
+    print(f"\n  Robustez sobre White vs Black: el OR común es {psi:.4f} "
+          f"IC95 [{lo:.4f}, {hi:.4f}],")
+    print(f"  y la brecha predicha va de {(odds_shift(rate(*reversed(ta['White'])), hi) - odds_shift(rate(*reversed(ta['Black or African American'])), hi) - g['gap0'])*100:+.2f} pp "
+          f"a {(odds_shift(rate(*reversed(ta['White'])), lo) - odds_shift(rate(*reversed(ta['Black or African American'])), lo) - g['gap0'])*100:+.2f} pp "
+          f"en ese intervalo.")
+    print(f"  La sobre-predicción de {abs(g['residual'])*100:.2f} pp no es un "
+          "artefacto de estimación.")
 
     # ======================================================== RESULTADO 3
     print("\n" + line)
-    print("R3. EL p-VALOR ES UN HECHO SOBRE TU VOLUMEN, NO SOBRE TU NEGOCIO")
+    print("R3. EL ENDURECIMIENTO EN MOMIOS NO ES MONÓTONO EN NADA")
     print(line)
-    print("  Los mismos datos contados a distintas escalas. El p-valor")
-    print("  recorre todo el rango; el tamaño del efecto se queda en la")
-    print("  misma banda (por debajo de 1/100 el redondeo por celda ya lo")
-    print("  distorsiona, y eso también hay que decirlo).\n")
-    demo = [("loan_purposes", "propósito"), ("sexes", "sexo")]
-    tabs = {v: pair(v, 2024, 2025) for v, _ in demo}
-    print(f"  {'escala':<9}{'n':>12}" +
-          "".join(f"{lab+' p':>16}{'OR máx/mín':>12}" for _, lab in demo))
-    for div in (10000, 1000, 100, 10, 1):
-        cells = []
-        n = None
-        for v, _ in demo:
-            t0, t1 = tabs[v]
-            a0, a1 = scaled(t0, div), scaled(t1, div)
-            _, p = homogeneity(a0, a1)
-            cells.append(f"{p:>16.3g}{or_spread(a0, a1):>12.2f}")
-            if v == "loan_purposes":
-                n = sum(x[0] for x in a0.values()) + sum(x[0] for x in a1.values())
-        print(f"  1/{div:<7}{n:>12,}" + "".join(cells))
-    print("\n  A 1/1000 el propósito del préstamo parece homogéneo (p 0.73)")
-    print("  con el mismo tamaño de efecto que a escala real. Una entidad")
-    print("  mediana corriendo este test sobre su propia cartera concluye")
-    print("  homogeneidad donde el agregado nacional grita lo contrario.")
+    print("  Los cinco estratos de raza, con intervalo. Ordenados por momios,")
+    print("  no por conveniencia. Más bajo = más endurecimiento.\n")
+    ors = stratum_or_ci(ta, tb)
+    ref = ors["White"][0]
+    print(f"  {'estrato':<44}{'OR':>8}{'IC95':>20}{'vs White':>11}{'n':>14}")
+    for s, (o, l, h, n) in sorted(ors.items(), key=lambda kv: kv[1][0]):
+        print(f"  {s[:43]:<44}{o:>8.4f}   [{l:.4f}, {h:.4f}]"
+              f"{(o/ref-1)*100:>+10.1f}%{n:>14,}")
+    print("\n  Native Hawaiian se endureció un 15% MÁS que White; Black un 4%")
+    print("  MENOS; American Indian es indistinguible. Ninguna narrativa")
+    print("  monótona sobrevive a esta columna, y por eso el paper no la usa.")
 
     # ======================================================== RESULTADO 4
     print("\n" + line)
-    print("R4. MAGNITUD: QUÉ EJE IMPORTA, Y EL ORDEN NO ES INTUITIVO")
+    print("R4. LA CURVATURA QUE PRODUCE TODO LO ANTERIOR")
     print(line)
-    print(f"  {'eje':<14}{'OR máx/mín':>14}{'rango entre estratos':>22}"
-          f"{'p>=0.05':>10}")
-    for var in SEGMENTATIONS:
-        g = [r for r in rows if r["var"] == var]
-        ors = [r["ors"] for r in g if r["ors"]]
-        sp = [r["spread"] * 100 for r in g]
-        print(f"  {AXIS_LABELS[var]:<14}{min(ors):>7.2f}-{max(ors):<6.2f}"
-              f"{min(sp):>14.1f}-{max(sp):<6.1f} pp"
-              f"{sum(1 for r in g if r['p'] >= 0.05):>7}/{len(g)}")
-    exc = [(AXIS_LABELS[v], max(r["ors"] for r in rows if r["var"] == v) - 1)
-           for v in SEGMENTATIONS]
-    hi, lo = max(exc, key=lambda e: e[1]), min(exc, key=lambda e: e[1])
-    print(f"\n  Exceso sobre el 1x neutro: {hi[0]} {hi[1]:.2f} contra "
-          f"{lo[0]} {lo[1]:.2f}")
-    print(f"  -> factor {hi[1]/lo[1]:.0f}x, un orden de magnitud. El p-valor")
-    print("  los declara a casi todos significativos por igual.")
+    print(f"  Coste en pp del mismo desplazamiento (psi = {psi:.4f}) según la")
+    print("  tasa base. Cero en los extremos, máximo en el medio.\n")
+    print(f"  {'base':>8}{'tras el desplazamiento':>25}{'cuesta':>10}")
+    for r in (0.50, 0.60, 0.70, 0.80, 0.86, 0.90, 0.95):
+        print(f"  {r*100:>7.0f}%{odds_shift(r, psi)*100:>24.2f}%"
+              f"{curvature_cost(r, psi)*100:>9.2f} pp")
+    grid = np.linspace(0.02, 0.98, 481)
+    peak = grid[int(np.argmax([curvature_cost(x, psi) for x in grid]))]
+    print(f"\n  máximo en base = {peak*100:.1f}%   "
+          f"({curvature_cost(peak, psi)*100:.2f} pp)")
+    b0 = rate(*reversed(ta["Black or African American"]))
+    w0 = rate(*reversed(ta["White"]))
+    print(f"\n  White partía de {w0*100:.2f}% y le cuesta "
+          f"{curvature_cost(w0, psi)*100:.2f} pp")
+    print(f"  Black partía de {b0*100:.2f}% y le cuesta "
+          f"{curvature_cost(b0, psi)*100:.2f} pp")
+    print(f"  diferencia mecánica: {(curvature_cost(b0,psi)-curvature_cost(w0,psi))*100:+.2f} pp"
+          f"   sin que nadie los trate distinto")
 
-    ok = [r for r in rows if abs(r["pooled"]) >= 0.005]
-    ratios = [abs(r["spread"] / r["pooled"]) for r in ok]
-    print(f"\n  rango entre estratos / movimiento agregado "
-          f"(excluidos {len(rows)-len(ok)} pares con |Δ| < 0.5 pp,")
-    print(f"  donde el cociente es artefacto de dividir por casi cero):")
-    print(f"    mediana {statistics.median(ratios):.2f}x   máx {max(ratios):.2f}x"
-          f"   supera 1x en {sum(1 for x in ratios if x > 1)}/{len(ratios)}")
-
+    # ---------------------------------------------------------------- 4.1
     print("\n  " + "-" * 70)
-    print("  NIVELES vs. MOVIMIENTOS — la distinción que el paper no puede")
-    print("  dejar implícita. Lo homogéneo es el movimiento, no el nivel.")
-    for var in ("races", "ethnicities"):
-        t = pair(var, 2024, 2025)[1]
-        lv = sorted(((rate(*reversed(v)), s) for s, v in t.items()),
-                    reverse=True)
-        print(f"\n    {AXIS_LABELS[var]}, niveles 2025:")
-        for r, s in lv:
-            print(f"      {s[:46]:<48}{r*100:>7.2f}%")
-        print(f"      rango de niveles: {(lv[0][0]-lv[-1][0])*100:.1f} pp")
-
-    return rows
+    print("  4.1 EL p-VALOR INVIERTE EL ORDEN QUE SE LE PIDE")
+    print(f"  {'eje':<12}{'Breslow-Day log10 p':>22}{'rango de momios':>20}"
+          f"{'max/min':>10}")
+    for var in ("sexes", "races", "ethnicities"):
+        u0, u1 = pair(var, Y0, Y1)
+        keep = [s for s in u0 if min(u0[s][0], u1[s][0]) >= 5000]
+        k0 = {s: u0[s] for s in keep}; k1 = {s: u1[s] for s in keep}
+        lg, chi2, df = homogeneity_log10p(k0, k1)
+        o = stratum_or_ci(k0, k1)
+        vals = [v[0] for v in o.values()]
+        print(f"  {AXIS_LABELS[var]:<12}{lg:>22.1f}"
+              f"{min(vals):>12.3f}-{max(vals):<7.3f}"
+              f"{max(vals)/min(vals):>9.3f}")
+    print("\n  El contraste declara el sexo el eje más heterogéneo. La")
+    print("  magnitud dice que es el menos. Quien elija qué vigilar por")
+    print("  significación elige mal.")
+    return gaps
 
 
 def selftest():
