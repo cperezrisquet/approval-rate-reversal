@@ -1,15 +1,18 @@
 """
-Reversión de la tasa de aprobación: la tasa agrupada se mueve contra la
-tasa de todos sus estratos. Análisis empírico sobre datos públicos.
+La tasa de aprobación agrupada y sus estratos. Análisis empírico sobre
+HMDA, 2018-2025, datos públicos.
 
-La maquinaria de abajo (reversión, descomposición, estandarización,
-Mantel-Haenszel) ya funciona y no depende de la fuente; lo que falta es
-enchufarle los datos. Ver application_data.py.
+El resultado que ordena el paper es negativo: la paradoja de Simpson NO
+aparece (0 de 56 pares). Lo que sí aparece es heterogeneidad — los
+estratos no comparten un efecto común — y que el test que debería
+detectarla contesta sobre el volumen de datos, no sobre el negocio.
+De ahí que todo se reporte en magnitud y no en p-valores.
 """
 import numpy as np
 from statsmodels.stats.contingency_tables import StratifiedTable
 
-from application_data import PERIODS, SEGMENTATIONS, load_applications, rate
+from application_data import (AXIS_LABELS, PAIRS, PERIODS, SEGMENTATIONS,
+                              pair, rate)
 
 line = "=" * 74
 
@@ -174,46 +177,173 @@ def homogeneity(t0, t1):
     return res.statistic, res.pvalue
 
 
+def stratum_odds_ratios(t0, t1):
+    """{segmento: razón de momios propia del estrato} entre dos períodos.
+
+    Es la pieza que el agregado esconde: Mantel-Haenszel las promedia y
+    devuelve una sola cifra, pero solo tiene sentido promediarlas si se
+    parecen entre sí, que es lo que mide homogeneity().
+    """
+    ors = {}
+    for s in t0:
+        if s not in t1:
+            continue
+        n1, a1 = t1[s]
+        n0, a0 = t0[s]
+        b1, b0 = n1 - a1, n0 - a0
+        if min(a1, b1, a0, b0) == 0:     # celda vacía: momios indefinidos
+            continue
+        ors[s] = (a1 * b0) / (b1 * a0)
+    return ors
+
+
+def or_spread(t0, t1):
+    """Cociente entre la mayor y la menor razón de momios de los estratos.
+
+    Tamaño del efecto de la heterogeneidad. A diferencia del p-valor de
+    Breslow-Day, no depende del número de solicitudes, y por eso es la
+    cifra que el paper reporta.
+    """
+    ors = stratum_odds_ratios(t0, t1)
+    return max(ors.values()) / min(ors.values()) if ors else None
+
+
+def rate_change_spread(t0, t1):
+    """(mínimo, máximo, rango) de los cambios de tasa por estrato, en
+    puntos porcentuales sobre 1. El rango es lo que el movimiento agregado
+    resume en una sola cifra."""
+    d = [rate(*reversed(t1[s])) - rate(*reversed(t0[s]))
+         for s in t0 if s in t1]
+    return min(d), max(d), max(d) - min(d)
+
+
+def scaled(t, div):
+    """La misma tabla contada a 1/div de escala, para mostrar que el
+    p-valor es una función del volumen. Se conserva un mínimo de 2 y 1 por
+    celda para que los momios sigan definidos."""
+    return {s: (max(2, round(n / div)), max(1, round(a / div)))
+            for s, (n, a) in t.items()}
+
+
 # ---------------------------------------------------------------- INFORME
 
 def main():
-    if not PERIODS or not SEGMENTATIONS:
-        print(line)
-        print("PENDIENTE: la fuente de datos no está fijada todavía.")
-        print(line)
-        print("  1. Decidir la fuente        -> data/README.md")
-        print("  2. Fijar PERIODS y SEGMENTATIONS -> application_data.py")
-        print("  3. Bajar los documentos     -> python fetch_sources.py")
-        print("\nLa maquinaria de estimación ya está lista; se comprueba con")
-        print("  python analysis.py --selftest")
-        return
-
-    df = load_applications()
+    import statistics
 
     # ======================================================== RESULTADO 1
     print(line)
-    print("R1. REVERSIÓN — TASA AGRUPADA CONTRA TASA POR ESTRATO")
+    print("R1. LA REVERSIÓN NO OCURRE")
     print(line)
-    # TODO: tabla por segmento y período; marcar el signo de cada Δ.
+    print("  Paradoja de Simpson = la tasa agrupada se mueve y TODOS los")
+    print("  estratos se mueven al contrario. Barrido completo:\n")
+    rows = []
+    for var in SEGMENTATIONS:
+        for y0, y1 in PAIRS:
+            t0, t1 = pair(var, y0, y1)
+            if len(t0) < 2:
+                continue
+            r0, r1 = pooled_rate(t0.values()), pooled_rate(t1.values())
+            within, mix = decompose(t0, t1)
+            lo, hi, spread = rate_change_spread(t0, t1)
+            chi2, p = homogeneity(t0, t1)
+            rows.append(dict(
+                var=var, y0=y0, y1=y1, k=len(t0),
+                n=sum(v[0] for v in t0.values()) + sum(v[0] for v in t1.values()),
+                pooled=r1 - r0, within=within, mix=mix,
+                lo=lo, hi=hi, spread=spread, ors=or_spread(t0, t1),
+                chi2=chi2, p=p, rev=is_reversal(t0, t1)))
+
+    revs = [r for r in rows if r["rev"]]
+    print(f"  pares probados ({len(SEGMENTATIONS)} ejes x {len(PAIRS)} pares)"
+          f"   {len(rows)}")
+    print(f"  reversiones unánimes                    {len(revs)}")
+    mixes = sorted(abs(r["mix"]) for r in rows)
+    print(f"\n  |componente de mezcla|: mediana {statistics.median(mixes)*100:.2f} pp"
+          f"   máx {max(mixes)*100:.2f} pp")
+    print(f"  pares con |mezcla| < 0.5 pp:  "
+          f"{sum(1 for m in mixes if m < 0.005)}/{len(mixes)}")
+    print("\n  La composición de la demanda casi no mueve la tasa agrupada.")
+    print("  El anti-patrón que la literatura advierte no está en estos datos.")
 
     # ======================================================== RESULTADO 2
     print("\n" + line)
-    print("R2. DESCOMPOSICIÓN — CUÁNTO ES MEZCLA Y CUÁNTO ES CRITERIO")
+    print("R2. LA HOMOGENEIDAD SÍ SE RECHAZA — Y ESO NO DICE NADA")
     print(line)
-    # TODO: decompose() sobre la segmentación principal.
+    rej = [r for r in rows if r["p"] < 0.05]
+    tiny = [r for r in rows if r["p"] < 1e-10]
+    print(f"  Breslow-Day rechaza la homogeneidad en   {len(rej)}/{len(rows)}")
+    print(f"  con p < 1e-10 en                         {len(tiny)}/{len(rows)}")
+    ns = [r["n"] for r in rows]
+    print(f"  n por par: {min(ns):,} a {max(ns):,}")
+    print("\n  A esos tamaños cualquier diferencia se vuelve significativa.")
+    print("  Un p~0 sobre 30 millones de solicitudes no distingue un eje")
+    print("  que importa de uno que no. Ver R3.")
 
     # ======================================================== RESULTADO 3
     print("\n" + line)
-    print("R3. BARRIDO — CON QUÉ FRECUENCIA REVIERTE")
+    print("R3. EL p-VALOR ES UN HECHO SOBRE TU VOLUMEN, NO SOBRE TU NEGOCIO")
     print(line)
-    # TODO: is_reversal() sobre todos los pares período x segmentación.
+    print("  Los mismos datos contados a distintas escalas. El p-valor")
+    print("  recorre todo el rango; el tamaño del efecto se queda en la")
+    print("  misma banda (por debajo de 1/100 el redondeo por celda ya lo")
+    print("  distorsiona, y eso también hay que decirlo).\n")
+    demo = [("loan_purposes", "propósito"), ("sexes", "sexo")]
+    tabs = {v: pair(v, 2024, 2025) for v, _ in demo}
+    print(f"  {'escala':<9}{'n':>12}" +
+          "".join(f"{lab+' p':>16}{'OR máx/mín':>12}" for _, lab in demo))
+    for div in (10000, 1000, 100, 10, 1):
+        cells = []
+        n = None
+        for v, _ in demo:
+            t0, t1 = tabs[v]
+            a0, a1 = scaled(t0, div), scaled(t1, div)
+            _, p = homogeneity(a0, a1)
+            cells.append(f"{p:>16.3g}{or_spread(a0, a1):>12.2f}")
+            if v == "loan_purposes":
+                n = sum(x[0] for x in a0.values()) + sum(x[0] for x in a1.values())
+        print(f"  1/{div:<7}{n:>12,}" + "".join(cells))
+    print("\n  A 1/1000 el propósito del préstamo parece homogéneo (p 0.73)")
+    print("  con el mismo tamaño de efecto que a escala real. Una entidad")
+    print("  mediana corriendo este test sobre su propia cartera concluye")
+    print("  homogeneidad donde el agregado nacional grita lo contrario.")
 
     # ======================================================== RESULTADO 4
     print("\n" + line)
-    print("R4. EL INDICADOR CORREGIDO — TRES LECTURAS DE LA MISMA TASA")
+    print("R4. MAGNITUD: QUÉ EJE IMPORTA, Y EL ORDEN NO ES INTUITIVO")
     print(line)
-    # TODO: agrupada, estandarizada y MH, una al lado de la otra.
-    _ = df
+    print(f"  {'eje':<14}{'OR máx/mín':>14}{'rango entre estratos':>22}"
+          f"{'p>=0.05':>10}")
+    for var in SEGMENTATIONS:
+        g = [r for r in rows if r["var"] == var]
+        ors = [r["ors"] for r in g if r["ors"]]
+        sp = [r["spread"] * 100 for r in g]
+        print(f"  {AXIS_LABELS[var]:<14}{min(ors):>7.2f}-{max(ors):<6.2f}"
+              f"{min(sp):>14.1f}-{max(sp):<6.1f} pp"
+              f"{sum(1 for r in g if r['p'] >= 0.05):>7}/{len(g)}")
+    print("\n  Dos órdenes de magnitud entre el eje más heterogéneo y el más")
+    print("  homogéneo. El p-valor los declara a casi todos significativos.")
+
+    ok = [r for r in rows if abs(r["pooled"]) >= 0.005]
+    ratios = [abs(r["spread"] / r["pooled"]) for r in ok]
+    print(f"\n  rango entre estratos / movimiento agregado "
+          f"(excluidos {len(rows)-len(ok)} pares con |Δ| < 0.5 pp,")
+    print(f"  donde el cociente es artefacto de dividir por casi cero):")
+    print(f"    mediana {statistics.median(ratios):.2f}x   máx {max(ratios):.2f}x"
+          f"   supera 1x en {sum(1 for x in ratios if x > 1)}/{len(ratios)}")
+
+    print("\n  " + "-" * 70)
+    print("  NIVELES vs. MOVIMIENTOS — la distinción que el paper no puede")
+    print("  dejar implícita. Lo homogéneo es el movimiento, no el nivel.")
+    for var in ("races", "ethnicities"):
+        t = pair(var, 2024, 2025)[1]
+        lv = sorted(((rate(*reversed(v)), s) for s, v in t.items()),
+                    reverse=True)
+        print(f"\n    {AXIS_LABELS[var]}, niveles 2025:")
+        for r, s in lv:
+            print(f"      {s[:46]:<48}{r*100:>7.2f}%")
+        print(f"      rango de niveles: {(lv[0][0]-lv[-1][0])*100:.1f} pp")
+
+    return rows
 
 
 def selftest():

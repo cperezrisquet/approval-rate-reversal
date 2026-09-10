@@ -4,12 +4,15 @@ pertenecen a sus editores y son de acceso libre.
 
     python fetch_sources.py
 
-La lista de fuentes está VACÍA a propósito: la fuente de la entrega #2
-no está decidida. Ver data/README.md. La candidata (HMDA / FFIEC Data
-Browser) queda abajo lista para descomentar.
+Fuente: HMDA vía el endpoint view/aggregations del Data Browser del
+FFIEC/CFPB. Baja las 64 respuestas (8 ejes x 8 años) que alimentan el
+análisis, unos 500 bytes cada una. Ya están versionadas en
+data/hmda_aggregations/, así que esto solo hace falta para refrescarlas
+o para comprobar que siguen dando lo mismo.
 """
 import pathlib
 import shutil
+import time
 import ssl
 import subprocess
 import urllib.request
@@ -52,58 +55,44 @@ def get(url, timeout=120):
             capture_output=True, check=True)
         return out.stdout
 # ---------------------------------------------------------------- FUENTES
-# TODO: fijar la fuente. Candidata — HMDA (Home Mortgage Disclosure Act),
-# vía el Data Browser del FFIEC/CFPB: nivel solicitud, con resultado
-# (action_taken) y variables de segmentación, sin clave y sin registro.
-#
-#   HMDA_URL = ("https://ffiec.cfpb.gov/v2/data-browser-api/view/csv"
-#               "?years={year}&states=XX")
-#
-# Documentación del API y diccionario de campos:
-#   https://ffiec.cfpb.gov/documentation/api/data-browser/
-#   https://ffiec.cfpb.gov/documentation/publications/loan-level-datasets/
-#
-# Ojo con el tamaño: el CSV nacional de un año son varios GB. Filtrar por
-# estado o condado en la propia consulta, no después.
-
-CSVS = [
-    # (url, nombre_local, etiqueta_para_el_log)
-]
-
-JSONS = [
-    # (url, nombre_local, etiqueta_para_el_log)
-]
-
-
-def fetch(url, dest, label):
-    if dest.exists():
-        print(f"  ya existe  {dest.name}")
-        return
-    print(f"  bajando    {dest.name}  ({label})")
-    dest.write_bytes(get(url))
-    print(f"             {dest.stat().st_size:,} bytes")
+# El endpoint exige filtro geográfico (no hay agregación nacional) y los
+# filtros multivaluados hacen de eje de agrupación. Ver application_data.py.
+AGG = "https://ffiec.cfpb.gov/v2/data-browser-api/view/aggregations"
 
 
 def main():
-    if not CSVS and not JSONS:
-        print("No hay fuentes configuradas todavía.")
-        print("Decide la fuente en data/README.md y rellena CSVS / JSONS.")
-        return
+    import urllib.parse
+    from application_data import CACHE, PERIODS, SEGMENTATIONS, STATES
 
-    for group, items in (("Tablas", CSVS), ("Series", JSONS)):
-        if not items:
-            continue
-        print(f"{group}:")
-        for url, name, label in items:
-            try:
-                fetch(url, DATA / name, label)
-            except Exception as exc:                   # noqa: BLE001
-                print(f"  FALLÓ      {name}: {exc}")
-                print(f"             {url}")
+    CACHE.mkdir(parents=True, exist_ok=True)
+    nuevos = fallos = 0
+    for var, vals in SEGMENTATIONS.items():
+        for year in PERIODS:
+            dest = CACHE / f"{var}_{year}.json"
+            if dest.exists():
+                continue
+            q = urllib.parse.urlencode({"years": year, "states": STATES,
+                                        "actions_taken": "1,2,3", var: vals})
+            # La API devuelve 503 de vez en cuando; reintento con espera.
+            for intento in range(5):
+                try:
+                    dest.write_bytes(get(f"{AGG}?{q}", timeout=120))
+                    print(f"  bajado     {dest.name}  "
+                          f"({dest.stat().st_size:,} bytes)")
+                    nuevos += 1
+                    break
+                except Exception as exc:               # noqa: BLE001
+                    espera = 3 * 2 ** intento
+                    print(f"  {dest.name}: {exc} — reintento en {espera}s")
+                    time.sleep(espera)
+            else:
+                print(f"  FALLÓ      {dest.name}")
+                fallos += 1
 
-    print(f"\nDestino: {DATA}")
-    print("El esquema que espera el análisis está documentado en "
-          "src/application_data.py.")
+    total = len(SEGMENTATIONS) * len(PERIODS)
+    print(f"\n  {nuevos} nuevos, {fallos} fallos, "
+          f"{len(list(CACHE.glob('*.json')))}/{total} en caché")
+    print(f"  Destino: {CACHE}")
 
 
 if __name__ == "__main__":
