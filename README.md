@@ -94,10 +94,16 @@ Four readings of the same application file, all in
 | `pooled_rate` | the rate a dashboard shows when nobody asks for a breakdown |
 | `is_reversal` | whether the pooled rate moves against *every* stratum — unanimity is required, so that ordinary mix effects are not reported as paradoxes |
 | `decompose` | how much of the pooled change is within-segment behaviour and how much is composition; an exact identity, not an approximation |
-| `standardized_rate` / `mantel_haenszel_or` | the rate under a fixed composition, and the same comparison weighted by information instead of demand — if they agree, the conclusion does not depend on the weighting scheme |
+| `standardized_rate` | the rate under a fixed composition — the reading that answers "did the criterion change?" rather than "did the applicants change?" |
+| `mantel_haenszel_or` / `mantel_haenszel_ci` | the same comparison weighted by information instead of demand, with a confidence interval; if it agrees with the standardised rate, the conclusion does not depend on the weighting scheme |
+| `homogeneity` | Breslow–Day test — whether the strata share a common odds ratio at all. This is the test that decides whether pooling is legitimate, and it is what keeps the paper from resting on one anecdotal pair of periods. |
 
 `python analysis.py --selftest` runs them against a synthetic two-stratum case
-with a known reversal and asserts that the decomposition identity closes.
+with a known reversal, asserts that the decomposition identity closes, and
+checks the hand-written Mantel–Haenszel estimator against
+`statsmodels.stats.contingency_tables.StratifiedTable` to 1e-12. The
+hand-written version stays: in a paper about how definitions produce figures,
+the arithmetic has to be on the page, and statsmodels is the check on it.
 
 ## Layout
 

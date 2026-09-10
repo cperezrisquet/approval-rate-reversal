@@ -44,11 +44,19 @@ SEGMENTATIONS = {
 }
 
 
-def load_applications(filename=None):
+REQUIRED_COLUMNS = {"period", "segment", "n", "approved"}
+
+
+def load_applications(filename=None, cache=True):
     """Carga la tabla de solicitudes desde data/.
 
     Los documentos fuente no se versionan (ver data/README.md); hay que
     correr `python fetch_sources.py` antes de esto.
+
+    Lee con el motor de pyarrow y deja al lado una copia en Parquet: un año
+    de HMDA son varios GB de CSV y releerlo en cada corrida cuesta minutos.
+    La caché se invalida por fecha de modificación del CSV, y tampoco se
+    versiona.
     """
     if filename is None:
         raise NotImplementedError(
@@ -58,8 +66,17 @@ def load_applications(filename=None):
     if not path.exists():
         raise FileNotFoundError(
             f"{path} no existe. Corre primero: python fetch_sources.py")
-    df = pd.read_csv(path)
-    missing = {"period", "segment", "n", "approved"} - set(df.columns)
+
+    parquet = path.with_suffix(".parquet")
+    if cache and parquet.exists() and \
+            parquet.stat().st_mtime >= path.stat().st_mtime:
+        df = pd.read_parquet(parquet)
+    else:
+        df = pd.read_csv(path, engine="pyarrow")
+        if cache:
+            df.to_parquet(parquet, index=False)
+
+    missing = REQUIRED_COLUMNS - set(df.columns)
     if missing:
         raise ValueError(f"faltan columnas en {path.name}: {sorted(missing)}")
     return df

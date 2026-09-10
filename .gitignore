@@ -7,3 +7,4 @@ paper/paper.html
 data/*.pdf
 data/*.json
 data/*.csv
+data/*.parquet

@@ -1,3 +1,6 @@
 numpy>=2.0
 pandas>=2.0
 matplotlib>=3.8
+statsmodels>=0.14      # Mantel-Haenszel de referencia y test de Breslow-Day
+pyarrow>=15.0          # los CSV de la fuente son de varios GB
+certifi                # bundle de CA para fetch_sources.py en python.org

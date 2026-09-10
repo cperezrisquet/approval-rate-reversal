@@ -7,6 +7,7 @@ Mantel-Haenszel) ya funciona y no depende de la fuente; lo que falta es
 enchufarle los datos. Ver application_data.py.
 """
 import numpy as np
+from statsmodels.stats.contingency_tables import StratifiedTable
 
 from application_data import PERIODS, SEGMENTATIONS, load_applications, rate
 
@@ -131,6 +132,48 @@ def mantel_haenszel_or(t0, t1):
     return num / den if den else None
 
 
+def stratified_table(t0, t1):
+    """Arma la tabla 2x2xK que espera statsmodels, un estrato por capa.
+
+    Convención de cada capa: [[aprobadas t1, denegadas t1],
+                              [aprobadas t0, denegadas t0]]
+    que es la que hace coincidir su razón de momios con la de
+    mantel_haenszel_or(). La versión a mano se queda: en un paper sobre
+    cómo las definiciones producen cifras, la aritmética tiene que estar a
+    la vista, y statsmodels sirve de contraste, no de sustituto.
+    """
+    layers = []
+    for s in t0:
+        if s not in t1:
+            continue
+        n1, a1 = t1[s]
+        n0, a0 = t0[s]
+        layers.append([[a1, n1 - a1], [a0, n0 - a0]])
+    if not layers:
+        raise ValueError("no hay estratos comunes entre los dos períodos")
+    return StratifiedTable(np.array(layers).transpose(1, 2, 0))
+
+
+def mantel_haenszel_ci(t0, t1, alpha=0.05):
+    """Intervalo de confianza de la razón de momios común. Un IC que cruza
+    1 significa que la dirección intra-estrato no está establecida, y eso
+    hay que decirlo antes de construir un argumento sobre ella."""
+    return stratified_table(t0, t1).oddsratio_pooled_confint(alpha=alpha)
+
+
+def homogeneity(t0, t1):
+    """Test de Breslow-Day: ¿comparten los estratos una misma razón de
+    momios?
+
+    Es el test que dice si agrupar es legítimo. Un p bajo rechaza la
+    homogeneidad: los estratos no comparten un efecto común y ninguna
+    cifra agrupada los representa — que es exactamente el argumento del
+    paper, y con esto deja de ser una anécdota sobre un par de períodos.
+    """
+    res = stratified_table(t0, t1).test_equal_odds()
+    return res.statistic, res.pvalue
+
+
 # ---------------------------------------------------------------- INFORME
 
 def main():
@@ -175,7 +218,8 @@ def main():
 
 def selftest():
     """Caso sintético mínimo con reversión conocida, para verificar los
-    estimadores antes de que existan los datos reales.
+    estimadores antes de que existan los datos reales. Comprueba además que
+    la razón de momios a mano coincide con la de statsmodels.
 
     Dos estratos, dos períodos. Cada estrato mejora su tasa; la demanda se
     desplaza al estrato difícil, y la tasa agrupada cae.
@@ -205,10 +249,24 @@ def selftest():
     assert std > r0, "estandarizada debería subir, como cada estrato"
 
     or_mh = mantel_haenszel_or(t0, t1)
-    print(f"  razón de momios de Mantel-Haenszel:        {or_mh:.3f}")
+    lo, hi = mantel_haenszel_ci(t0, t1)
+    print(f"  razón de momios de Mantel-Haenszel:        {or_mh:.3f}"
+          f"  IC95 [{lo:.3f}, {hi:.3f}]")
     assert or_mh > 1, "MH debería apuntar en el mismo sentido"
+    assert lo > 1, "el IC no debería cruzar 1 en este caso"
 
-    print("\n  OK — los cuatro estimadores se comportan como deben.")
+    # Contraste contra la implementación de referencia: si las dos no
+    # coinciden al bit, la de arriba está mal.
+    ref = stratified_table(t0, t1).oddsratio_pooled
+    assert abs(or_mh - ref) < 1e-12, f"a mano {or_mh} != statsmodels {ref}"
+    print("  coincide con statsmodels (StratifiedTable) hasta 1e-12")
+
+    chi2, p = homogeneity(t0, t1)
+    verdict = "no se rechaza" if p >= 0.05 else "SE RECHAZA"
+    print(f"  Breslow-Day, homogeneidad: chi2 {chi2:.3f}  p {p:.4f}  "
+          f"-> {verdict}")
+
+    print("\n  OK — los estimadores se comportan como deben.")
 
 
 if __name__ == "__main__":
