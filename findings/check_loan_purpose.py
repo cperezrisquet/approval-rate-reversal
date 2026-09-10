@@ -1,5 +1,7 @@
-import json, sys
-sys.path.insert(0, "/Users/cperez/PycharmProjects/cifras-correctas/approval-rate-reversal/src")
+import json, pathlib, sys
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
+CACHE = ROOT / "data" / "hmda_aggregations"
 from analysis import (pooled_rate, is_reversal, decompose, standardized_rate,
                       mantel_haenszel_or, mantel_haenszel_ci, homogeneity, pp)
 
@@ -8,7 +10,7 @@ LP = {"1": "Compra", "2": "Mejora", "31": "Refinanciación",
 
 def table(year):
     """{segmento: (n, aprobadas)}  con  n = a1+a2+a3,  aprobadas = a1+a2."""
-    d = json.load(open(f"hmda_{year}.json"))
+    d = json.loads((CACHE / f"loan_purposes_{year}.json").read_text())
     cells = {}
     for a in d["aggregations"]:
         cells.setdefault(a["loan_purposes"], {})[a["actions_taken"]] = a["count"]

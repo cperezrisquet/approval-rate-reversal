@@ -1,5 +1,5 @@
 import json, pathlib, sys, time, urllib.parse
-sys.path.insert(0, str(pathlib.Path.home() / "PycharmProjects/cifras-correctas/approval-rate-reversal/src"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
 from analysis import pooled_rate, is_reversal, decompose, pp
 from fetch_sources import get   # contexto TLS + reintento por curl
 
@@ -21,7 +21,9 @@ VARS = {
     "sexes":                "Male,Female,Joint",
     "ethnicities":          "Hispanic or Latino,Not Hispanic or Latino,Joint",
 }
-CACHE = pathlib.Path("cache"); CACHE.mkdir(exist_ok=True)
+CACHE = (pathlib.Path(__file__).resolve().parent.parent
+         / "data" / "hmda_aggregations")
+CACHE.mkdir(parents=True, exist_ok=True)
 
 
 def fetch(var, vals, year):

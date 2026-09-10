@@ -1,53 +1,59 @@
-# Source documents
+# Sources
 
-The source documents are **not redistributed here**. They belong to their
-publishers and are freely available at the links below. Run
-[`src/fetch_sources.py`](../src/fetch_sources.py) to download them into this
-directory, or fetch them by hand.
+Everything here is public. No key, no registration, no proprietary or
+institution-internal data at any stage.
 
-```bash
-cd src && python fetch_sources.py
+## What is committed, and why
+
+```
+hmda_aggregations/                       64 API responses (8 axes × 8 years)
+prousuario_reclamaciones_2020-2026.csv   the Dominican cross-check
 ```
 
-## Status: the source is not fixed yet
+Unusually for this series, the source data *is* versioned. The reason is that
+it is small: the FFIEC aggregations endpoint returns a cross-tabulation of
+counts in roughly 500 bytes, so the entire evidence base for a paper covering
+8.6 to 9.3 million applications a year is about 32 KB of public aggregate
+counts. Committing it means every number in the paper can be rechecked without
+contacting the API, which is worth more than the convention of not
+redistributing sources.
 
-This entry needs application-level data with an approve/deny outcome and at
-least two segmentation variables. What was checked:
+Refresh them with `python src/fetch_sources.py`, which skips what is already
+present and retries the endpoint's intermittent 503s.
 
-| Source | Verdict |
-|---|---|
-| BCRD, *Boletín de Estadísticas Sistemas de Pago* | **No.** Publishes payments — stocks and flows of instruments. No applications, no approvals. It is the source of entry #1. |
-| Superintendencia de Bancos, open data | **No.** ProUsuario complaints, inspections, sanctions, regulations. Nothing transactional and nothing about applications. |
-| BCRD API (`apibcrd.bancentral.gov.do`) | **No.** Angular SPA, no obvious REST endpoints. |
-| HMDA / FFIEC Data Browser | **Candidate.** See below. |
+## 1. HMDA, via the FFIEC Data Browser
 
-There is no public Dominican source for credit approval rates. Choosing HMDA
-moves the series off Dominican data for one entry; that is a deliberate change
-of register, not an oversight, and the paper should say so in section 2.
-
-## Candidate — HMDA, via the FFIEC/CFPB Data Browser
-
-Home Mortgage Disclosure Act filings. Application-level, annual, public, no key
-and no registration. Every US mortgage application at a covered institution,
-with its outcome and the applicant and loan attributes.
+Filings under the Home Mortgage Disclosure Act. Application-level, annual,
+public. Filing years **2018–2025**, retrieved **10 September 2026**.
 
 - Data Browser: <https://ffiec.cfpb.gov/data-browser/>
 - API documentation: <https://ffiec.cfpb.gov/documentation/api/data-browser/>
-- Loan-level dataset documentation and field dictionary:
-  <https://ffiec.cfpb.gov/documentation/publications/loan-level-datasets/>
+- Field dictionary: <https://ffiec.cfpb.gov/documentation/publications/loan-level-datasets/>
 
-Query shape (filter in the query — the national CSV for a single year runs to
-several GB):
+The endpoint used is `view/aggregations`, not the loan-level files. Two of its
+behaviours shape the whole design, and both were established empirically:
+
+1. **A geographic filter is mandatory.** There is no national aggregate; a
+   request without `states`, `msamds`, `counties` or `leis` returns HTTP 400
+   (`provide-only-msamds-or-states-or-counties-or-leis`). The 50 states and
+   the District of Columbia are requested, and that set defines the paper's
+   population. Territories are excluded.
+2. **A multi-valued filter doubles as a grouping axis.** Requesting
+   `loan_purposes=1,2,31,32,4,5` returns the purpose-by-outcome
+   cross-tabulation rather than a filtered total. `years` does *not* behave
+   this way — two years in one request collapse into one figure — so each year
+   is a separate call.
+
+Request shape:
 
 ```
-https://ffiec.cfpb.gov/v2/data-browser-api/view/csv?years=2024&states=XX
+https://ffiec.cfpb.gov/v2/data-browser-api/view/aggregations
+  ?years=2025&states=AL,AK,...,WY&actions_taken=1,2,3&loan_purposes=1,2,31,32,4,5
 ```
 
-### The outcome field
+### The approval rate is a definition, not a field
 
-Approval rate is not a field; it is a definition built on `action_taken`, and
-the definition is itself part of the paper's argument. Codes to verify against
-the field dictionary for the filing year in use:
+HMDA reports `action_taken`. The rate used throughout the paper is:
 
 | Code | Meaning | In the rate? |
 |---|---|---|
@@ -57,28 +63,52 @@ the field dictionary for the filing year in use:
 | 4 | Withdrawn by the applicant | **excluded** — no lender decision |
 | 5 | File closed for incompleteness | **excluded** — no lender decision |
 | 6 | Purchased loan | **excluded** — not an application |
-| 7, 8 | Preapproval request denied / approved but not accepted | decide explicitly and state it |
 
-Excluding codes 4–6 is the defensible reading: the rate should measure
-decisions, and a withdrawal is not one. Report the alternative denominator in
-the limitations section, since including withdrawals is common in practice and
-changes the level.
+Excluding 4 to 6 is the defensible reading: the rate should measure decisions,
+and a withdrawal is not one. Including withdrawals is common in practice and
+lowers the level materially; section 8 of the paper reports the consequence.
+Codes 7 and 8 (preapproval requests) do not arise under the filters used.
 
-### Segmentation variables
+### Segmentation axes
 
-To be fixed in `SEGMENTATIONS` in
-[`src/application_data.py`](../src/application_data.py). Candidates carried by
-the loan-level file: `loan_purpose`, `loan_type`, `occupancy_type`,
-`derived_dwelling_category`, `lei` (the filing institution), county, and the
-binned income, loan-to-value and debt-to-income fields.
+Eight, declared in `SEGMENTATIONS` in
+[`src/application_data.py`](../src/application_data.py): `loan_purposes`,
+`loan_types`, `lien_statuses`, `construction_methods`, `total_units`, `races`,
+`sexes`, `ethnicities`. `age_groups` was tried and does not group — the API
+accepts it and returns an ungrouped total, so it is not used.
 
-Pick the segmentation before looking at which one reverses. Searching every
-combination for a reversal and reporting the one that appears is the mistake
-the series argues against; the scan in section 5 reports the whole distribution
-of results, not its maximum.
+The demographic fields are as reported by the filing institution, with
+substantial non-response, and the strata are the API's own categories.
 
-## Reproducibility note
+**On axis selection.** `loan_purposes` was fixed *before* the data were
+examined, on a stated mechanism, and the prediction it generated was wrong;
+the record is in [`../findings/01-hipotesis-preregistrada.md`](../findings/01-hipotesis-preregistrada.md).
+The remaining seven axes are reported as a complete distribution, never as
+the maximum. Searching combinations for the one that behaves interestingly and
+reporting that one is the anti-pattern this series argues against.
 
-Whatever source is chosen: record the vintage — the file, its publication date
-and the filing year — here and in section 9. HMDA filings are revised, and a
-paper that cannot name its vintage cannot be rechecked.
+## 2. Superintendencia de Bancos de la República Dominicana — ProUsuario
+
+Used only for the Dominican cross-check, not for any result in the paper.
+Monthly counts of consumer complaints resolved in favour of or against the
+user, from August 2020, segmented by sex.
+
+<https://datos.gob.do/> → *Estadísticas de ProUsuario, 2020 - 2026*
+
+This is the only public Dominican source with the shape the paper needs — a
+decision rate with strata. It shows no reversal either (0 of 6 annual and 0 of
+70 monthly pairs) and carries a single segmentation axis, so it cannot support
+the sweep. See [`../findings/02-resultado-negativo.md`](../findings/02-resultado-negativo.md).
+
+## What was ruled out
+
+| Source | Verdict |
+|---|---|
+| BCRD, *Boletín de Estadísticas Sistemas de Pago* | Publishes payments — stocks and flows of instruments. No applications, no approvals. It is the source of entry #1 of this series. |
+| Superintendencia de Bancos, other open data | Inspections, sanctions, regulations. Nothing about applications. |
+| BCRD API (`apibcrd.bancentral.gov.do`) | Angular SPA, no usable REST endpoints. |
+
+## Revisions
+
+HMDA filings are revised. The vintage above is the one every figure in the
+paper was computed from, and it is restated in section 9 of the paper.

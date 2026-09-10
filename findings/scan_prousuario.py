@@ -1,5 +1,6 @@
 import csv, pathlib, sys
-sys.path.insert(0, str(pathlib.Path.home() / "PycharmProjects/cifras-correctas/approval-rate-reversal/src"))
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
 from analysis import pooled_rate, is_reversal, decompose, pp
 
 MES = {m: i+1 for i, m in enumerate(
@@ -9,7 +10,8 @@ def num(x):
     x = (x or "").strip().replace(",", "")
     return int(float(x)) if x else 0
 
-with open("prousuario.csv", encoding="utf-8-sig", newline="") as f:
+CSV = ROOT / "data" / "prousuario_reclamaciones_2020-2026.csv"
+with open(CSV, encoding="utf-8-sig", newline="") as f:
     rows = list(csv.DictReader(f))
 
 months, years = {}, {}
