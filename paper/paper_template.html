@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Approved in Every Segment, Rejected Overall</title>
+<title>Significant by Volume</title>
 <style>
   @page { size: Letter; margin: 17mm 17mm 16mm 17mm; }
   * { box-sizing: border-box; }
@@ -48,6 +48,8 @@
 
   figure { margin: 14px 0; break-inside: avoid; text-align: center; }
   figure svg { max-width: 100%; height: auto; }
+  /* Figuras de aspecto 1:1: al ancho completo ocupan la página. */
+  figure.narrow svg { max-width: 63%; }
   figcaption {
     font-family: system-ui, sans-serif; font-size: 8.3pt; color: #52514e;
     text-align: left; margin-top: 7px; line-height: 1.45;
@@ -156,50 +158,44 @@
   .cover .foot .muted { color: #898781; }
 </style>
 
-<!-- ==================================================================
-     ESQUELETO. Los marcadores [TODO: ...] se sustituyen a mano cuando
-     el análisis exista; build_paper.py los cuenta y avisa. Los {{...}}
-     los rellena build_paper.py y su ausencia es error.
-     Estructura calcada de la entrega #1 (4 resultados + discusión).
-     ================================================================== -->
-
 <section class="cover">
   <div class="kicker">Working paper · {{DATE}}</div>
-  <h1>Approved in Every<br>Segment, Rejected<br>Overall</h1>
-  <p class="hook">A portfolio's approval rate <b>[TODO: fell N%]</b> year over
-  year. Within <b>every single segment</b> it <b>[TODO: rose]</b>.</p>
-  <p class="hook">Both figures are correct. They come from the same
-  application file.</p>
+  <h1>Significant<br>by Volume</h1>
+  <p class="hook">A homogeneity test on 17.9 million mortgage applications
+  returns <b>p ≈ 10<sup>−399</sup></b>. The same data, counted at one
+  thousandth of the scale, returns <b>p = 0.73</b>.</p>
+  <p class="hook">The segments did not change. The verdict did.</p>
 
   <div class="figwrap">{{FIGCOVER_BARE}}</div>
 
   <div class="stats">
     <div class="stat">
-      <span class="v down">[TODO]</span>
-      <span class="k">Pooled approval rate<br>[TODO: period]</span>
+      <span class="v down">0 of 56</span>
+      <span class="k">Simpson reversals —<br>the warned-of failure</span>
     </div>
     <div class="stat">
-      <span class="v up">[TODO]</span>
-      <span class="k">Same rate, within<br>every segment</span>
+      <span class="v up">53 of 56</span>
+      <span class="k">pairs where homogeneity<br>is rejected</span>
     </div>
     <div class="stat">
-      <span class="v">[TODO]</span>
-      <span class="k">Share of the gap explained<br>by application mix</span>
+      <span class="v">2.19× / 1.00×</span>
+      <span class="k">heterogeneity of the widest<br>and narrowest axis</span>
     </div>
   </div>
 
   <div class="foot">
     <span><strong>{{AUTHOR}}</strong><br><span class="muted">{{AFFIL}}</span></span>
-    <span style="text-align:right">Data: [TODO: source]<br><span class="muted">{{REPO}}</span></span>
+    <span style="text-align:right">Data: HMDA, Federal Financial Institutions
+    Examination Council<br><span class="muted">{{REPO}}</span></span>
   </div>
 </section>
 
 <header>
-  <h1>Approved in Every Segment, Rejected Overall: [TODO: subtitle naming the
-  data and the period]</h1>
-  <p class="subtitle">When an approval rate falls in the aggregate while rising
-  in every segment that composes it, the aggregate is not wrong — it is
-  answering a question about applicant mix.</p>
+  <h1>Significant by Volume: What a Homogeneity Test on Approval Rates Measures, HMDA 2018–2025</h1>
+  <p class="subtitle">The pooled approval rate is not undone by Simpson's
+  paradox — that does not happen here at all. It is undone by heterogeneity,
+  and the standard test for heterogeneity mostly reports how many
+  applications were counted.</p>
   <div class="byline">
     <strong>{{AUTHOR}}</strong> · {{AFFIL}} · {{EMAIL}}<br>
     Working paper · {{DATE}} · Data and code: <span class="muted">{{REPO}}</span>
@@ -208,99 +204,349 @@
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  <p>[TODO: 120–150 words. State the reversal in numbers, name the source and
-  period, say what the decomposition attributes to mix versus to within-segment
-  behaviour, and close on the operational claim — which of the two rates a
-  credit-operations dashboard should carry, and why.]</p>
+  <p>Aggregate approval rates are standing indicators in credit operations,
+  and the standard caution against them invokes Simpson's paradox. Across
+  8.6 to 9.3 million annual mortgage applications reported under the Home
+  Mortgage Disclosure Act, eight segmentation axes and seven consecutive
+  year-pairs — 56 tests in all — that paradox never occurs. The composition
+  of demand moves the pooled rate by less than 0.5 pp in 49 of the 56 pairs.
+  What does occur is heterogeneity: the Breslow–Day test rejects a common
+  odds ratio in 53 of 56 pairs, 47 of them at p &lt; 10<sup>−10</sup>. That
+  result is close to uninformative, because the same 2024–2025 loan-purpose
+  data counted at one thousandth of scale returns p = 0.73 with the effect
+  size unchanged. Whether a portfolio's segments "differ significantly" is
+  therefore largely a statement about its volume. Reported as magnitude
+  instead, the eight axes span 1.00× to 2.19× in the ratio of largest to
+  smallest stratum odds ratio, and the ordering is not the intuitive one.
+  The paper argues for publishing the spread rather than the test.</p>
 </div>
 
 <h2>1. Introduction</h2>
-<p>[TODO: the aggregate approval rate is a standing KPI in credit operations.
-Simpson (1951) and Yule (1903) established that a rate computed over a pooled
-population can move against every stratum of that population; Bickel et al.
-(1975) showed it happening in admissions data. The gap this paper addresses:
-[TODO — state the novelty, not the textbook result].]</p>
+
+<p>An approval rate is the most portable indicator in consumer credit. It is
+one division, it is comparable across months and institutions, and it appears
+on nearly every operational dashboard. The standard caution against reading it
+in the aggregate is Simpson's paradox: a rate computed over a pooled
+population can move against every stratum that composes it. Yule
+(1903) described the reversal, Simpson (1951) formalised it, Bickel et al.
+(1975) found it in admissions data, and it has since become the canonical
+warning in the analyst's training.</p>
+
+<p>This paper reports that the warning is misdirected, and that a more common
+failure sits behind it. In 56 tests over public mortgage-application data the
+reversal never appears. The pooled rate is nonetheless a poor summary of its
+strata, for a different reason — the strata do not share a common effect —
+and the test that is supposed to establish this cannot be read at face value,
+because at these sample sizes it rejects almost everything.</p>
+
+<p>The contribution is not the observation that large samples produce small
+p-values, which is old (Berkson, 1938; Lin et al., 2013). It is the
+measurement: how much of a reported approval-rate movement is composition
+(almost none), how far the homogeneity verdict moves when only the sample
+size changes (from p = 0.73 to p ≈ 10<sup>−399</sup> on identical
+proportions), and how much heterogeneity each candidate segmentation axis
+actually carries once magnitude replaces significance.</p>
 
 <h2>2. Data and method</h2>
-<p>[TODO: source, unit of observation, how approve/deny is defined, the
-segmentation variables, exclusions, and the counts that survive them. Every
-number in the paper must be recomputable from the repository.]</p>
 
-<h3>2.1 Notation</h3>
-<p>[TODO: pooled rate, stratum rates, weights; define the reversal condition
-formally and the direct-standardisation and Mantel–Haenszel estimators used in
-section 6.]</p>
+<p>All figures come from filings under the Home Mortgage Disclosure Act
+(HMDA), retrieved through the public Data Browser API of the Federal
+Financial Institutions Examination Council. No key or registration is
+required. The unit of observation is a loan application; this paper uses the
+aggregated cell counts the API returns, which are sufficient for every
+quantity reported here.</p>
 
-<h2>3. Result 1: the reversal</h2>
-<p>[TODO: pooled series against the stratified series.]</p>
+<p>Two properties of that endpoint shape the design. It does not serve a
+national aggregate, so a geographic filter is mandatory; the 50 states and
+the District of Columbia are requested, and that set defines the population
+of the paper. Territories are excluded. A multi-valued filter also acts as a
+grouping axis, so requesting the six loan-purpose codes returns the
+purpose-by-outcome cross-tabulation directly.</p>
 
-<table>
-<caption><strong>Table 1.</strong> [TODO: approval rate by segment and period,
-with applicant counts, pooled rate, and the sign of each change.]</caption>
-<thead>
-<tr><th>Segment</th><th>Applications</th><th>Rate, t₀</th><th>Rate, t₁</th><th>Δ</th></tr>
-</thead>
-<tbody>
-<tr><td>[TODO]</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>
-</tbody>
-</table>
+<h3>2.1 The approval rate is a definition, not a field</h3>
+
+<p>HMDA reports <code>action_taken</code>, not an approval rate. The rate used
+throughout is</p>
+
+<ol class="spec">
+  <li>numerator: code 1 (loan originated) plus code 2 (application approved
+  but not accepted by the applicant) — in both the lender approved;</li>
+  <li>denominator: codes 1, 2 and 3 (application denied);</li>
+  <li>excluded: code 4 (withdrawn by the applicant), code 5 (file closed for
+  incompleteness) and code 6 (purchased loan).</li>
+</ol>
+
+<p>Codes 4 to 6 are excluded because the rate should measure lender
+decisions, and a withdrawal is not one. Including withdrawals is common in
+practice and changes the level; section 8 reports the consequence.</p>
+
+<h3>2.2 Estimands</h3>
+
+<p>For strata <em>i</em> with weights <em>w<sub>i</sub></em> and stratum rates
+<em>r<sub>i</sub></em>, the pooled rate is Σ<em>w<sub>i</sub>r<sub>i</sub></em>.
+A change in it decomposes exactly — not approximately — into a within-stratum
+and a composition term,</p>
+
+<p style="text-align:center; margin:11px 0">
+Σ<em>w</em><sub>1</sub><em>r</em><sub>1</sub> −
+Σ<em>w</em><sub>0</sub><em>r</em><sub>0</sub> =
+Σ<em>w̄</em>(<em>r</em><sub>1</sub>−<em>r</em><sub>0</sub>) +
+Σ<em>r̄</em>(<em>w</em><sub>1</sub>−<em>w</em><sub>0</sub>)
+</p>
+
+<p>with <em>w̄</em> and <em>r̄</em> the two-period averages. A Simpson
+reversal is recorded only when the pooled rate moves in one direction and
+<em>every</em> comparable stratum moves in the other. Unanimity is required
+deliberately: if one stratum dissents the phenomenon is an ordinary
+composition effect, and conflating the two is what makes the paradox seem
+ubiquitous. Heterogeneity across strata is tested with Breslow–Day
+(Breslow &amp; Day, 1980) and summarised by magnitude as the ratio of the
+largest to the smallest stratum odds ratio. Mantel–Haenszel (1959) supplies
+a common odds ratio for comparison, and direct standardisation supplies the
+rate under a fixed composition.</p>
+
+<h3>2.3 Pre-registration</h3>
+
+<div class="callout">
+  <span class="lbl">Stated before the data were examined</span>
+  <p>The segmentation was fixed <em>ex ante</em> on a mechanism:
+  refinancing volume tracks interest rates far more sharply than purchase
+  volume, and refinancings carry a different approval rate, so a shift toward
+  refinancing should drag the pooled rate down while each purpose improves.
+  The prediction was a negative composition term larger in magnitude than the
+  within-stratum term. <strong>It was false</strong> — the composition term is
+  −0.07 pp against a within-stratum term of +1.74 pp. The record is in the
+  repository, and the sweep in section 6 reports the whole distribution across
+  axes rather than the largest value in it.</p>
+</div>
+
+<h2>3. Result 1: the reversal does not occur</h2>
+
+<p>Across eight segmentation axes and seven consecutive year-pairs from 2018
+to 2025, no pair produces a unanimous reversal. The composition term is
+smaller than 0.5 pp in absolute value in 49 of the 56 pairs, with a median of
+0.07 pp and a maximum of 2.18 pp, against pooled movements ranging from
+0.03 pp to 6.5 pp. In these data the pooled approval rate moves because
+decisions within segments changed, not because the mix of applicants
+changed.</p>
 
 {{FIG1}}
 
-<h2>4. Result 2: the mix that produces it</h2>
-<p>[TODO: decomposition of the pooled change into a within-segment component
-and a composition component.]</p>
+<p>The closest case is loan purpose between 2020 and 2021, where five of six
+strata move against the aggregate carrying 62.6 % of the weight. The pooled
+change there is −0.03 pp, indistinguishable from zero; reporting it as a sign
+reversal would be an artefact of dividing by a quantity that is not
+meaningfully different from nothing. It is counted as no reversal.</p>
+
+<h2>4. Result 2: homogeneity is rejected almost everywhere</h2>
+
+<p>The pooled rate can fail as a summary without any reversal, and here it
+does. Breslow–Day rejects a common odds ratio in 53 of the 56 pairs, 47 of
+them at p &lt; 10<sup>−10</sup>. For 2024–2025 by loan purpose the statistic
+is 1855.9 on 5 degrees of freedom, which corresponds to p ≈
+10<sup>−399</sup>.</p>
+
+<p>That last number is reported to make a point about its own worthlessness.
+Each pair carries between 13.3 and 36.7 million applications. At those sizes
+the test has power against differences far too small to matter operationally,
+and a p-value near zero cannot distinguish an axis that carries real
+heterogeneity from one that carries almost none. The three pairs that fail to
+reject are informative precisely because they are so few, and they are not
+randomly placed: all three fall on sex or ethnicity, the two axes section 6
+identifies as nearly homogeneous.</p>
+
+<h2>5. Result 3: the verdict follows the volume</h2>
+
+<p>To separate what the test measures from what the data contain, the same
+2024–2025 loan-purpose table was counted at successively smaller scales, with
+every cell divided by a constant and rounded. The proportions are held; only
+the sample size falls.</p>
 
 {{FIG2}}
 
-<h2>5. Result 3: how often the reversal occurs</h2>
-<p>[TODO: scan across segmentations and periods — the reversal is either a
-curiosity or a regular feature of the series, and the scan is what decides
-which. Report the share of period–segmentation pairs that reverse.]</p>
+<table>
+<caption><strong>Table 1.</strong> Identical proportions at five scales.
+Loan purpose against sex, applications for 2024 and 2025 combined. The
+p-value crosses conventional significance between the third and fourth row
+for loan purpose and never crosses it for sex.</caption>
+<thead>
+<tr><th>Scale</th><th>Applications</th><th>Loan purpose, p</th>
+<th>Loan purpose, spread</th><th>Sex, p</th><th>Sex, spread</th></tr>
+</thead>
+<tbody>
+<tr><td>1/10 000</td><td>1 793</td><td>0.999</td><td>1.18×</td><td>1.000</td><td>1.01×</td></tr>
+<tr><td>1/1 000</td><td>17 895</td><td class="muted">0.731</td><td>1.14×</td><td>0.999</td><td>1.00×</td></tr>
+<tr><td>1/100</td><td>178 951</td><td class="neg">0.002</td><td>1.79×</td><td>0.994</td><td>1.00×</td></tr>
+<tr><td>1/10</td><td>1 789 515</td><td class="neg">10<sup>−37</sup></td><td>1.53×</td><td>0.938</td><td>1.00×</td></tr>
+<tr><td>1/1</td><td>17 895 137</td><td class="neg">10<sup>−399</sup></td><td>1.53×</td><td>0.532</td><td>1.00×</td></tr>
+</tbody>
+</table>
+
+<p>At one thousandth of scale — roughly the annual volume of a mid-sized
+lender — the loan-purpose axis appears homogeneous at p = 0.73, while
+carrying an odds-ratio spread in the same band as at full scale. Two
+institutions with identical segment behaviour and different book sizes would
+reach opposite conclusions from the same test. Below one hundredth the
+per-cell rounding begins to distort the effect size itself, which is why the
+two smallest rows show spreads that drift; the p-value, by contrast, moves
+across four hundred orders of magnitude on proportions that never change.</p>
+
+<div class="callout">
+  <span class="lbl">The practical consequence</span>
+  <p>"Do our segments differ significantly?" is not a question about the
+  portfolio. At the volumes a national aggregate carries, the answer is yes
+  before the data are seen; at the volumes a single institution carries, it
+  can be no for an axis that matters a great deal. The test does not tell an
+  operations team which breakdowns to publish. The magnitude does.</p>
+</div>
+
+<h2>6. Result 4: magnitude, and the order is not the intuitive one</h2>
+
+<p>Reported as the ratio of the largest to the smallest stratum odds ratio
+across the seven year-pairs, the eight axes separate by more than an order of
+magnitude, and the ranking does not follow the loan-versus-applicant division
+one might expect. Measured as excess over the neutral 1×, the widest axis
+carries 1.19 and the narrowest 0.08 — a factor of about fifteen.</p>
 
 {{FIG3}}
 
-<h2>6. Result 4: what the corrected indicator looks like</h2>
-<p>[TODO: the standardised rate beside the two published readings, and how much
-of the reported movement it removes.]</p>
+<p>Loan purpose is the widest at 2.19×, which is unsurprising: a cash-out
+refinancing and a home-improvement loan are different products assessed
+against different collateral. Race follows at 1.51×, ahead of loan type
+(1.40×), the number of units (1.32×) and lien status (1.31×). Sex (1.08×)
+and ethnicity (1.09×) are effectively homogeneous, and they are the only
+axes on which Breslow–Day ever fails to reject.</p>
+
+<h3>6.1 Levels and movements are different questions</h3>
+
+<p>This result concerns year-over-year <em>movements</em> in approval rates,
+and must not be read as a statement about <em>levels</em>. The levels differ
+substantially. In 2025 the approval rate ranges from 64.90 % for applicants
+recorded as Native Hawaiian or Other Pacific Islander to 79.99 % for
+applicants recorded as White — a spread of 15.1 pp — and from 71.75 % to
+81.00 % across the ethnicity categories, a spread of 9.2 pp. Those gaps are
+large, they are extensively documented in the fair-lending literature, and
+nothing here speaks to their causes.</p>
 
 {{FIG4}}
 
-<h2>7. Discussion</h2>
-<p>[TODO: the argument, in the register of entrega #1 — the pooled rate is not
-defective, it is a different estimand. Say which decision each rate is fit for,
-and what a dashboard should therefore publish.]</p>
+<p>What the homogeneity result says is narrower: between 2024 and 2025 those
+groups' approval rates all moved in the same direction by similar amounts, a
+spread of 2.6 pp against a level spread of 15.1 pp. A pooled year-over-year
+movement is therefore a fair summary of the sex and ethnicity strata and a
+poor one of the loan-purpose strata. A pooled <em>level</em> remains a poor
+summary of all of them.</p>
 
-<div class="callout">
-  <span class="lbl">The practical claim</span>
-  <p>[TODO: one paragraph an operations lead can act on.]</p>
-</div>
+<h3>6.2 What the spread costs the reader</h3>
+
+<p>Excluding the eight pairs whose pooled movement is smaller than 0.5 pp,
+where the ratio is an artefact of a near-zero denominator, the spread between
+strata is a median 0.65 times the pooled movement and exceeds it outright in
+17 of 48 pairs. In other words, a reader given only the aggregate is
+routinely told a number smaller than the disagreement it conceals.</p>
+
+<h2>7. Discussion: publish the spread, not the test</h2>
+
+<p>Three claims follow, in decreasing order of confidence.</p>
+
+<p>First, the Simpson warning should be retired from the standard briefing on
+approval rates, or at least demoted. It describes something that did not
+happen once in 56 opportunities across seven years of national data. Analysts
+taught to fear it are watching the wrong failure mode.</p>
+
+<p>Second, a significance test on a heterogeneity question should not be
+reported by an institution whose volume it is a function of. This is not an
+argument against Breslow–Day, which is doing exactly what it was designed to
+do. It is an argument against using its output as a decision rule for which
+breakdowns deserve a dashboard tile. The alternative is direct: publish the
+spread of stratum odds ratios, or the range of stratum rate changes, both of
+which are volume-free and both of which appear in every table here.</p>
+
+<p>Third, the choice of segmentation axis should be made on magnitude rather
+than convention. On these data, breaking an approval rate down by applicant
+sex adds essentially nothing to a pooled movement, while breaking it down by
+loan purpose changes the story entirely. Neither fact is available from a
+p-value, and one of them is the opposite of what a fair-lending dashboard's
+layout would suggest — which is a statement about measurement, not about which
+breakdowns an institution is obliged to monitor.</p>
 
 <h2>8. Limitations</h2>
-<p>[TODO: unobserved confounders, the segments the source does not carry,
-revisions, and the limits of standardisation.]</p>
+
+<p>The population is mortgage applications in 50 states and the District of
+Columbia, an unusually well-instrumented and unusually collateralised
+segment. Nothing here establishes that composition effects are equally
+negligible in unsecured lending, in credit cards, or outside the United
+States. The absence of Simpson reversals is a finding about this population
+and these eight axes, not a theorem.</p>
+
+<p>The aggregated endpoint constrains the analysis to axes the API exposes
+one at a time. Interactions — a reversal visible only on purpose crossed with
+lien status, say — are not reachable this way and would require the
+loan-level files. Finer credit strata that plausibly carry more heterogeneity,
+notably binned income, loan-to-value and debt-to-income, were not examined,
+and neither was the lender level; a reversal may well exist at institution
+scale. Testing thousands of lenders for one would raise the multiplicity
+problem this paper's method is built to avoid, and any such search should be
+pre-registered.</p>
+
+<p>The approval-rate definition excludes withdrawn and incomplete files.
+Including them lowers the level materially, since withdrawals are numerous;
+it does not affect the direction of any result reported here, but any
+comparison against a differently-defined published figure will disagree on
+level. The demographic fields are as reported by the filing institution,
+with substantial non-response, and the strata used are the API's own
+categories. HMDA filings are revised; the vintage used is stated in
+section 9.</p>
+
+<p>Finally, the scale demonstration in section 5 divides and rounds cell
+counts rather than resampling applications. Rounding is why the effect size
+drifts in the two smallest rows of Table 1. A bootstrap would smooth that;
+it would not change the four hundred orders of magnitude the p-value
+travels.</p>
 
 <h2>9. Reproducibility</h2>
+
 <p>All series, analysis code and figure generation are available at {{REPO}}.
-[TODO: note any fixed seed, and the exact source vintage used.]</p>
+The 64 API responses that feed the analysis are committed with it — they are
+public aggregate counts of roughly 500 bytes each — so every number here can
+be rechecked without contacting the API. The Breslow–Day p-values below the
+floating-point floor are computed from the asymptotic expansion of the upper
+incomplete gamma function, and the implementation is checked against
+<code>scipy</code> over the range where <code>scipy</code> does not
+underflow. The Mantel–Haenszel estimator is checked against
+<code>statsmodels</code>. Data retrieved 10 September 2026, covering HMDA
+filing years 2018 through 2025.</p>
 
 <h2>References</h2>
 <div class="refs">
+  <p>Berkson, J. (1938). "Some Difficulties of Interpretation Encountered in
+  the Application of the Chi-Square Test". <em>Journal of the American
+  Statistical Association</em>, 33(203), 526–536.</p>
+
   <p>Bickel, P. J., Hammel, E. A., &amp; O'Connell, J. W. (1975). "Sex Bias in
   Graduate Admissions: Data from Berkeley". <em>Science</em>, 187(4175),
   398–404.</p>
 
-  <p>Blyth, C. R. (1972). "On Simpson's Paradox and the Sure-Thing Principle".
-  <em>Journal of the American Statistical Association</em>, 67(338),
-  364–366.</p>
+  <p>Breslow, N. E., &amp; Day, N. E. (1980). <em>Statistical Methods in
+  Cancer Research, Volume I: The Analysis of Case-Control Studies</em>. IARC
+  Scientific Publications No. 32, Lyon. [The homogeneity test of section 4.]</p>
+
+  <p>Federal Financial Institutions Examination Council. <em>Home Mortgage
+  Disclosure Act Data Browser</em> and loan-level dataset documentation.
+  Filing years 2018–2025.
+  <a href="https://ffiec.cfpb.gov/documentation/api/data-browser/">ffiec.cfpb.gov/documentation/api/data-browser</a></p>
+
+  <p>Lin, M., Lucas, H. C., &amp; Shmueli, G. (2013). "Too Big to Fail: Large
+  Samples and the p-Value Problem". <em>Information Systems Research</em>,
+  24(4), 906–917.</p>
 
   <p>Mantel, N., &amp; Haenszel, W. (1959). "Statistical Aspects of the
   Analysis of Data from Retrospective Studies of Disease". <em>Journal of the
   National Cancer Institute</em>, 22(4), 719–748.</p>
 
   <p>Pearl, J. (2009). <em>Causality: Models, Reasoning, and Inference</em>,
-  2nd ed. Cambridge University Press. [Chapter 6 on the paradox as a question
-  of which distribution the rate is taken over.]</p>
+  2nd ed. Cambridge University Press. [On the paradox as a question of which
+  distribution a rate is taken over.]</p>
 
   <p>Pérez Risquet, C. (2026). <em>Same System, Opposite Trends: Reading
   Active-User Metrics in Dominican Payment Statistics, 2020–2025</em>. Working
@@ -313,12 +559,14 @@ revisions, and the limits of standardisation.]</p>
 
   <p>Yule, G. U. (1903). "Notes on the Theory of Association of Attributes in
   Statistics". <em>Biometrika</em>, 2(2), 121–134.</p>
-
-  <p>[TODO: the source citation for the data, in the same form as entrega #1.]</p>
 </div>
 
 <footer>
-  Prepared from public sources. [TODO: the source-provider note — data provider
-  cited, no criticism of its practice implied, figures subject to revision.]
-  · {{AUTHOR}}, {{DATE}}
+  Prepared from public sources. HMDA data is published by the Federal
+  Financial Institutions Examination Council and is cited here as a data
+  provider; nothing in this paper should be read as a criticism of its
+  statistical practice, which documents the definitions the paper relies on,
+  nor as a finding about lending discrimination — section 6.1 states what the
+  homogeneity results do and do not cover. Filings are subject to revision by
+  the source. · {{AUTHOR}}, {{DATE}}
 </footer>

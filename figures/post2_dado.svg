@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="806.4pt" height="806.4pt" viewBox="0 0 806.4 806.4" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-10T10:49:29.236521</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 806.4 
+L 806.4 806.4 
+L 806.4 0 
+L 0 0 
+z
+" style="fill: #fcfcfb"/>
+  </g>
+  <g id="line2d_1">
+   <path d="M 72.576 263.6928 
+L 733.824 263.6928 
+" style="fill: none; stroke: #c3c2b7; stroke-width: 1.6; stroke-linecap: square"/>
+  </g>
+  <g id="line2d_2">
+   <path d="M 72.576 325.7856 
+L 733.824 325.7856 
+" style="fill: none; stroke: #e1e0d9; stroke-linecap: square"/>
+  </g>
+  <g id="line2d_3">
+   <path d="M 72.576 404.8128 
+L 733.824 404.8128 
+" style="fill: none; stroke: #e1e0d9; stroke-linecap: square"/>
+  </g>
+  <g id="line2d_4">
+   <path d="M 72.576 483.84 
+L 733.824 483.84 
+" style="fill: none; stroke: #e1e0d9; stroke-linecap: square"/>
+  </g>
+  <g id="line2d_5">
+   <path d="M 72.576 562.8672 
+L 733.824 562.8672 
+" style="fill: none; stroke: #e1e0d9; stroke-linecap: square"/>
+  </g>
+  <g id="line2d_6">
+   <path d="M 72.576 641.8944 
+L 733.824 641.8944 
+" style="fill: none; stroke: #c3c2b7; stroke-width: 1.6; stroke-linecap: square"/>
+  </g>
+  <g id="text_1">
+   <text style="font-weight: 700; font-size: 46px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="81.138" transform="rotate(-0 72.576 81.138)">¿Está cargado el dado?</text>
+  </g>
+  <g id="text_2">
+   <text style="font-size: 22px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #52514e" x="72.576" y="127.3888" transform="rotate(-0 72.576 127.3888)">El 6 sale el 18 % de las veces en vez del 16,7 %.</text>
+  </g>
+  <g id="text_3">
+   <text style="font-weight: 700; font-size: 22px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(72.576 168.386)">El sesgo es idéntico en las cinco filas. Lo único que</text>
+   <text style="font-weight: 700; font-size: 22px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(72.576 207.101944)">cambia es cuántas veces se tira el dado.</text>
+  </g>
+  <g id="text_4">
+   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #898781" x="72.576" y="251.5968" transform="rotate(-0 72.576 251.5968)">T I R A D A S</text>
+  </g>
+  <g id="text_5">
+   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: end; fill: #898781" x="383.04" y="251.5968" transform="rotate(-0 383.04 251.5968)">P - V A L O R</text>
+  </g>
+  <g id="text_6">
+   <text style="font-weight: 700; font-size: 15px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #898781" x="495.936" y="251.5968" transform="rotate(-0 495.936 251.5968)">V E R E D I C T O</text>
+  </g>
+  <g id="text_7">
+   <text style="font-weight: 700; font-size: 31px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="298.021" transform="rotate(-0 72.576 298.021)">60</text>
+  </g>
+  <g id="text_8">
+   <text style="font-weight: 700; font-size: 29px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: end; fill: #898781" x="383.04" y="297.263" transform="rotate(-0 383.04 297.263)">0,78</text>
+  </g>
+  <g id="text_9">
+   <text style="font-style: italic; font-size: 25px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #898781" x="495.936" y="295.572" transform="rotate(-0 495.936 295.572)">no hay evidencia</text>
+  </g>
+  <g id="text_10">
+   <text style="font-weight: 700; font-size: 31px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="377.0482" transform="rotate(-0 72.576 377.0482)">600</text>
+  </g>
+  <g id="text_11">
+   <text style="font-weight: 700; font-size: 29px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: end; fill: #898781" x="383.04" y="376.2902" transform="rotate(-0 383.04 376.2902)">0,38</text>
+  </g>
+  <g id="text_12">
+   <text style="font-style: italic; font-size: 25px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #898781" x="495.936" y="374.5992" transform="rotate(-0 495.936 374.5992)">no hay evidencia</text>
+  </g>
+  <g id="text_13">
+   <text style="font-weight: 700; font-size: 31px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="456.0754" transform="rotate(-0 72.576 456.0754)">6.000</text>
+  </g>
+  <g id="text_14">
+   <text style="font-weight: 700; font-size: 29px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: end; fill: #2a78d6" x="383.04" y="455.3174" transform="rotate(-0 383.04 455.3174)">0,0056</text>
+  </g>
+  <g id="text_15">
+   <text style="font-size: 25px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="495.936" y="453.5639" transform="rotate(-0 495.936 453.5639)">el dado está cargado</text>
+  </g>
+  <g id="text_16">
+   <text style="font-weight: 700; font-size: 31px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="535.1026" transform="rotate(-0 72.576 535.1026)">60.000</text>
+  </g>
+  <g id="text_17">
+   <!-- $2\times10^{-18}$ -->
+   <g style="fill: #2a78d6" transform="translate(247.9 534.3446)">
+    <text>
+     <tspan x="0" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">2</tspan>
+     <tspan x="24.100586" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">×</tspan>
+     <tspan x="54.049316" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">1</tspan>
+     <tspan x="72.5" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">0</tspan>
+     <tspan x="91.228223" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">−</tspan>
+     <tspan x="108.237402" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">1</tspan>
+     <tspan x="121.152881" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">8</tspan>
+    </text>
+   </g>
+  </g>
+  <g id="text_18">
+   <text style="font-size: 25px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="495.936" y="532.5911" transform="rotate(-0 495.936 532.5911)">el dado está cargado</text>
+  </g>
+  <g id="text_19">
+   <text style="font-weight: 700; font-size: 31px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="72.576" y="614.1298" transform="rotate(-0 72.576 614.1298)">600.000</text>
+  </g>
+  <g id="text_20">
+   <!-- $5\times10^{-169}$ -->
+   <g style="fill: #2a78d6" transform="translate(235.14 613.3718)">
+    <text>
+     <tspan x="0" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">5</tspan>
+     <tspan x="24.100586" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">×</tspan>
+     <tspan x="54.049316" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">1</tspan>
+     <tspan x="72.5" y="-0.951125" style="font-size: 29px; font-family: 'DejaVu Sans'; fill: #2a78d6">0</tspan>
+     <tspan x="91.228223" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">−</tspan>
+     <tspan x="108.237402" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">1</tspan>
+     <tspan x="121.152881" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">6</tspan>
+     <tspan x="134.068359" y="-12.928125" style="font-size: 20.3px; font-family: 'DejaVu Sans'; fill: #2a78d6">9</tspan>
+    </text>
+   </g>
+  </g>
+  <g id="text_21">
+   <text style="font-size: 25px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #0b0b0b" x="495.936" y="611.6183" transform="rotate(-0 495.936 611.6183)">el dado está cargado</text>
+  </g>
+  <g id="text_22">
+   <text style="font-weight: 700; font-size: 24px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(72.576 699.59835)">Mismo dado. Mismo sesgo. El p-valor no mide lo cargado</text>
+   <text style="font-weight: 700; font-size: 24px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; fill: #0b0b0b" transform="translate(72.576 740.66955)">que está: mide cuántas veces lo tiraste.</text>
+  </g>
+  <g id="text_23">
+   <text style="font-size: 15px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Avant Garde', sans-serif; text-anchor: start; fill: #898781" x="72.576" y="781.9728" transform="rotate(-0 72.576 781.9728)">Contraste bilateral de proporción · Cifras correctas, conclusiones falsas · 2</text>
+  </g>
+ </g>
+</svg>

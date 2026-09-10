@@ -9,6 +9,8 @@ detectarla contesta sobre el volumen de datos, no sobre el negocio.
 De ahí que todo se reporte en magnitud y no en p-valores.
 """
 import numpy as np
+from scipy import stats
+from scipy.special import gammaln
 from statsmodels.stats.contingency_tables import StratifiedTable
 
 from application_data import (AXIS_LABELS, PAIRS, PERIODS, SEGMENTATIONS,
@@ -177,6 +179,36 @@ def homogeneity(t0, t1):
     return res.statistic, res.pvalue
 
 
+def homogeneity_log10p(t0, t1):
+    """log10 del p-valor de Breslow-Day, y el estadístico y los grados de
+    libertad.
+
+    A estos tamaños el p-valor hace underflow y statsmodels devuelve 0
+    exacto, que no se puede graficar en un eje logarítmico ni citar en el
+    texto. La función de supervivencia en escala logarítmica sí da el valor
+    real (del orden de 1e-300 y más allá).
+    """
+    st = stratified_table(t0, t1)
+    res = st.test_equal_odds()
+    df = len(stratum_odds_ratios(t0, t1)) - 1
+    if df < 1:
+        return None, res.statistic, df
+    log10p = float(stats.chi2.logsf(res.statistic, df)) / np.log(10)
+    if not np.isfinite(log10p):
+        # chi2.logsf también hace underflow pasado cierto punto y devuelve
+        # -inf. Serie asintótica de la gamma incompleta superior:
+        #   sf = Γ(a,z)/Γ(a),  a = df/2,  z = chi2/2
+        #   Γ(a,z) ~ z^(a-1) e^-z [1 + (a-1)/z + (a-1)(a-2)/z² + ...]
+        a, z = df / 2.0, res.statistic / 2.0
+        corr = term = 1.0
+        for j in range(1, 6):
+            term *= (a - j) / z
+            corr += term
+        ln = (a - 1) * np.log(z) - z + np.log(corr) - gammaln(a)
+        log10p = float(ln) / np.log(10)
+    return log10p, res.statistic, df
+
+
 def stratum_odds_ratios(t0, t1):
     """{segmento: razón de momios propia del estrato} entre dos períodos.
 
@@ -320,8 +352,13 @@ def main():
         print(f"  {AXIS_LABELS[var]:<14}{min(ors):>7.2f}-{max(ors):<6.2f}"
               f"{min(sp):>14.1f}-{max(sp):<6.1f} pp"
               f"{sum(1 for r in g if r['p'] >= 0.05):>7}/{len(g)}")
-    print("\n  Dos órdenes de magnitud entre el eje más heterogéneo y el más")
-    print("  homogéneo. El p-valor los declara a casi todos significativos.")
+    exc = [(AXIS_LABELS[v], max(r["ors"] for r in rows if r["var"] == v) - 1)
+           for v in SEGMENTATIONS]
+    hi, lo = max(exc, key=lambda e: e[1]), min(exc, key=lambda e: e[1])
+    print(f"\n  Exceso sobre el 1x neutro: {hi[0]} {hi[1]:.2f} contra "
+          f"{lo[0]} {lo[1]:.2f}")
+    print(f"  -> factor {hi[1]/lo[1]:.0f}x, un orden de magnitud. El p-valor")
+    print("  los declara a casi todos significativos por igual.")
 
     ok = [r for r in rows if abs(r["pooled"]) >= 0.005]
     ratios = [abs(r["spread"] / r["pooled"]) for r in ok]
