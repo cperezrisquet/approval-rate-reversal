@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+paper/paper.html
+
+# Documentos fuente: no se redistribuyen. Ver data/README.md
+data/*.pdf
+data/*.json
+data/*.csv

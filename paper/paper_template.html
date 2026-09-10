@@ -1,0 +1,324 @@
+<meta charset="utf-8">
+<title>Approved in Every Segment, Rejected Overall</title>
+<style>
+  @page { size: Letter; margin: 17mm 17mm 16mm 17mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Charter, "Bitstream Charter", Georgia, "Times New Roman", serif;
+    font-size: 10.1pt; line-height: 1.45; color: #0b0b0b;
+    background: #fcfcfb; margin: 0; hyphens: auto;
+  }
+  .sans { font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif; }
+
+  header { margin-bottom: 22px; }
+  h1 {
+    font-size: 20pt; line-height: 1.22; margin: 0 0 10px; font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .subtitle { font-size: 11.5pt; color: #52514e; margin: 0 0 16px; font-style: italic; }
+  .byline {
+    font-family: system-ui, -apple-system, sans-serif; font-size: 9pt;
+    color: #52514e; border-top: 1px solid #e1e0d9;
+    border-bottom: 1px solid #e1e0d9; padding: 7px 0; margin-bottom: 20px;
+  }
+  .byline strong { color: #0b0b0b; font-weight: 600; }
+
+  h2 {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 11pt; font-weight: 700; margin: 26px 0 9px;
+    letter-spacing: 0.005em; break-after: avoid;
+  }
+  h3 {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 9.6pt; font-weight: 600; color: #52514e;
+    margin: 18px 0 6px; break-after: avoid;
+  }
+  p { margin: 0 0 9px; text-align: justify; }
+
+  .abstract {
+    background: #f4f3ef; border-left: 3px solid #2a78d6;
+    padding: 13px 16px; margin-bottom: 20px; font-size: 9.8pt;
+  }
+  .abstract p { margin: 0; }
+  .abstract .lbl {
+    font-family: system-ui, sans-serif; font-size: 7.8pt; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase; color: #52514e;
+    display: block; margin-bottom: 6px;
+  }
+
+  figure { margin: 14px 0; break-inside: avoid; text-align: center; }
+  figure svg { max-width: 100%; height: auto; }
+  figcaption {
+    font-family: system-ui, sans-serif; font-size: 8.3pt; color: #52514e;
+    text-align: left; margin-top: 7px; line-height: 1.45;
+  }
+  figcaption strong { color: #0b0b0b; font-weight: 600; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 13px 0;
+    font-family: system-ui, -apple-system, sans-serif; font-size: 8.7pt;
+    font-variant-numeric: tabular-nums; break-inside: avoid;
+  }
+  caption {
+    caption-side: top; text-align: left; font-size: 8.3pt; color: #52514e;
+    margin-bottom: 6px; font-family: system-ui, sans-serif;
+  }
+  caption strong { color: #0b0b0b; font-weight: 600; }
+  th {
+    text-align: right; font-weight: 600; padding: 5px 7px;
+    border-bottom: 1.2px solid #c3c2b7; color: #0b0b0b;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  td { padding: 4.5px 7px; border-bottom: 1px solid #e1e0d9; text-align: right; }
+  tr:last-child td { border-bottom: 1.2px solid #c3c2b7; }
+  .pos { color: #1c5cab; font-weight: 600; }
+  .neg { color: #c0322f; font-weight: 600; }
+  .muted { color: #898781; }
+
+  .callout {
+    border: 1px solid #e1e0d9; border-left: 3px solid #eb6834;
+    background: #fbf7f4; padding: 12px 15px; margin: 15px 0;
+    font-size: 9.6pt; break-inside: avoid;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .lbl {
+    font-family: system-ui, sans-serif; font-size: 7.8pt; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase; color: #b0491d;
+    display: block; margin-bottom: 5px;
+  }
+
+  ol.spec { margin: 10px 0 10px 18px; padding: 0; font-size: 9.8pt; }
+  ol.spec li { margin-bottom: 6px; }
+  ol.spec code, p code, td code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.88em; background: #f0efec; padding: 1px 4px; border-radius: 3px;
+  }
+
+  .refs { font-size: 8.7pt; line-height: 1.45; }
+  .refs p {
+    padding-left: 20px; text-indent: -20px; margin-bottom: 7px;
+    text-align: left; hyphens: none;
+  }
+  .refs a { color: #1c5cab; text-decoration: none; word-break: break-all; }
+
+  footer {
+    margin-top: 26px; padding-top: 11px; border-top: 1px solid #e1e0d9;
+    font-family: system-ui, sans-serif; font-size: 8pt; color: #898781;
+  }
+  .pagebreak { break-before: page; }
+
+  /* ---- Portada. Es la miniatura del carrusel en LinkedIn, así que
+         carga el titular y las tres cifras, no el abstract. ---- */
+  .cover {
+    break-after: page; display: flex; flex-direction: column;
+    min-height: 246mm; padding-top: 4mm;
+  }
+  .cover .kicker {
+    font-family: system-ui, sans-serif; font-size: 8.5pt; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; color: #898781;
+    margin-bottom: 14px;
+  }
+  .cover h1 {
+    font-size: 34pt; line-height: 1.08; margin: 0 0 16px;
+    letter-spacing: -0.022em;
+  }
+  .cover .hook {
+    font-size: 13pt; line-height: 1.42; color: #52514e; margin: 0 0 4px;
+    max-width: 92%; text-align: left; hyphens: none;
+  }
+  .cover .hook b { color: #0b0b0b; font-weight: 600; }
+  .cover .figwrap { margin: 4px 0 2px; }
+  .cover .figwrap svg { max-width: 100%; height: auto; }
+  .stats {
+    display: flex; gap: 0; border-top: 1px solid #e1e0d9;
+    border-bottom: 1px solid #e1e0d9; margin: 10px 0 0;
+  }
+  .stat { flex: 1; padding: 13px 16px 13px 0; }
+  .stat + .stat { padding-left: 20px; border-left: 1px solid #e1e0d9; }
+  .stat .v {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 21pt; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+    display: block; margin-bottom: 5px;
+  }
+  .stat .k {
+    font-family: system-ui, sans-serif; font-size: 8.3pt; color: #52514e;
+    line-height: 1.35; display: block;
+  }
+  .v.up { color: #1c5cab; }
+  .v.down { color: #c0322f; }
+  .cover .foot {
+    margin-top: auto; padding-top: 13px; border-top: 1px solid #e1e0d9;
+    font-family: system-ui, sans-serif; font-size: 8.6pt; color: #52514e;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .cover .foot > span { min-width: 0; }
+  .cover .foot .muted { color: #898781; }
+</style>
+
+<!-- ==================================================================
+     ESQUELETO. Los marcadores [TODO: ...] se sustituyen a mano cuando
+     el análisis exista; build_paper.py los cuenta y avisa. Los {{...}}
+     los rellena build_paper.py y su ausencia es error.
+     Estructura calcada de la entrega #1 (4 resultados + discusión).
+     ================================================================== -->
+
+<section class="cover">
+  <div class="kicker">Working paper · {{DATE}}</div>
+  <h1>Approved in Every<br>Segment, Rejected<br>Overall</h1>
+  <p class="hook">A portfolio's approval rate <b>[TODO: fell N%]</b> year over
+  year. Within <b>every single segment</b> it <b>[TODO: rose]</b>.</p>
+  <p class="hook">Both figures are correct. They come from the same
+  application file.</p>
+
+  <div class="figwrap">{{FIGCOVER_BARE}}</div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="v down">[TODO]</span>
+      <span class="k">Pooled approval rate<br>[TODO: period]</span>
+    </div>
+    <div class="stat">
+      <span class="v up">[TODO]</span>
+      <span class="k">Same rate, within<br>every segment</span>
+    </div>
+    <div class="stat">
+      <span class="v">[TODO]</span>
+      <span class="k">Share of the gap explained<br>by application mix</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><strong>{{AUTHOR}}</strong><br><span class="muted">{{AFFIL}}</span></span>
+    <span style="text-align:right">Data: [TODO: source]<br><span class="muted">{{REPO}}</span></span>
+  </div>
+</section>
+
+<header>
+  <h1>Approved in Every Segment, Rejected Overall: [TODO: subtitle naming the
+  data and the period]</h1>
+  <p class="subtitle">When an approval rate falls in the aggregate while rising
+  in every segment that composes it, the aggregate is not wrong — it is
+  answering a question about applicant mix.</p>
+  <div class="byline">
+    <strong>{{AUTHOR}}</strong> · {{AFFIL}} · {{EMAIL}}<br>
+    Working paper · {{DATE}} · Data and code: <span class="muted">{{REPO}}</span>
+  </div>
+</header>
+
+<div class="abstract">
+  <span class="lbl">Abstract</span>
+  <p>[TODO: 120–150 words. State the reversal in numbers, name the source and
+  period, say what the decomposition attributes to mix versus to within-segment
+  behaviour, and close on the operational claim — which of the two rates a
+  credit-operations dashboard should carry, and why.]</p>
+</div>
+
+<h2>1. Introduction</h2>
+<p>[TODO: the aggregate approval rate is a standing KPI in credit operations.
+Simpson (1951) and Yule (1903) established that a rate computed over a pooled
+population can move against every stratum of that population; Bickel et al.
+(1975) showed it happening in admissions data. The gap this paper addresses:
+[TODO — state the novelty, not the textbook result].]</p>
+
+<h2>2. Data and method</h2>
+<p>[TODO: source, unit of observation, how approve/deny is defined, the
+segmentation variables, exclusions, and the counts that survive them. Every
+number in the paper must be recomputable from the repository.]</p>
+
+<h3>2.1 Notation</h3>
+<p>[TODO: pooled rate, stratum rates, weights; define the reversal condition
+formally and the direct-standardisation and Mantel–Haenszel estimators used in
+section 6.]</p>
+
+<h2>3. Result 1: the reversal</h2>
+<p>[TODO: pooled series against the stratified series.]</p>
+
+<table>
+<caption><strong>Table 1.</strong> [TODO: approval rate by segment and period,
+with applicant counts, pooled rate, and the sign of each change.]</caption>
+<thead>
+<tr><th>Segment</th><th>Applications</th><th>Rate, t₀</th><th>Rate, t₁</th><th>Δ</th></tr>
+</thead>
+<tbody>
+<tr><td>[TODO]</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>
+</tbody>
+</table>
+
+{{FIG1}}
+
+<h2>4. Result 2: the mix that produces it</h2>
+<p>[TODO: decomposition of the pooled change into a within-segment component
+and a composition component.]</p>
+
+{{FIG2}}
+
+<h2>5. Result 3: how often the reversal occurs</h2>
+<p>[TODO: scan across segmentations and periods — the reversal is either a
+curiosity or a regular feature of the series, and the scan is what decides
+which. Report the share of period–segmentation pairs that reverse.]</p>
+
+{{FIG3}}
+
+<h2>6. Result 4: what the corrected indicator looks like</h2>
+<p>[TODO: the standardised rate beside the two published readings, and how much
+of the reported movement it removes.]</p>
+
+{{FIG4}}
+
+<h2>7. Discussion</h2>
+<p>[TODO: the argument, in the register of entrega #1 — the pooled rate is not
+defective, it is a different estimand. Say which decision each rate is fit for,
+and what a dashboard should therefore publish.]</p>
+
+<div class="callout">
+  <span class="lbl">The practical claim</span>
+  <p>[TODO: one paragraph an operations lead can act on.]</p>
+</div>
+
+<h2>8. Limitations</h2>
+<p>[TODO: unobserved confounders, the segments the source does not carry,
+revisions, and the limits of standardisation.]</p>
+
+<h2>9. Reproducibility</h2>
+<p>All series, analysis code and figure generation are available at {{REPO}}.
+[TODO: note any fixed seed, and the exact source vintage used.]</p>
+
+<h2>References</h2>
+<div class="refs">
+  <p>Bickel, P. J., Hammel, E. A., &amp; O'Connell, J. W. (1975). "Sex Bias in
+  Graduate Admissions: Data from Berkeley". <em>Science</em>, 187(4175),
+  398–404.</p>
+
+  <p>Blyth, C. R. (1972). "On Simpson's Paradox and the Sure-Thing Principle".
+  <em>Journal of the American Statistical Association</em>, 67(338),
+  364–366.</p>
+
+  <p>Mantel, N., &amp; Haenszel, W. (1959). "Statistical Aspects of the
+  Analysis of Data from Retrospective Studies of Disease". <em>Journal of the
+  National Cancer Institute</em>, 22(4), 719–748.</p>
+
+  <p>Pearl, J. (2009). <em>Causality: Models, Reasoning, and Inference</em>,
+  2nd ed. Cambridge University Press. [Chapter 6 on the paradox as a question
+  of which distribution the rate is taken over.]</p>
+
+  <p>Pérez Risquet, C. (2026). <em>Same System, Opposite Trends: Reading
+  Active-User Metrics in Dominican Payment Statistics, 2020–2025</em>. Working
+  paper.
+  <a href="https://github.com/cperezrisquet/active-user-divergence">github.com/cperezrisquet/active-user-divergence</a></p>
+
+  <p>Simpson, E. H. (1951). "The Interpretation of Interaction in Contingency
+  Tables". <em>Journal of the Royal Statistical Society, Series B</em>, 13(2),
+  238–241.</p>
+
+  <p>Yule, G. U. (1903). "Notes on the Theory of Association of Attributes in
+  Statistics". <em>Biometrika</em>, 2(2), 121–134.</p>
+
+  <p>[TODO: the source citation for the data, in the same form as entrega #1.]</p>
+</div>
+
+<footer>
+  Prepared from public sources. [TODO: the source-provider note — data provider
+  cited, no criticism of its practice implied, figures subject to revision.]
+  · {{AUTHOR}}, {{DATE}}
+</footer>
